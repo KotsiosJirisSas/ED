@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as spst
-from scipy.sparse import csr_matrix #optimizes H . v operations. to check if H already row sparse, do  isspmatrix_csr(H)
+from scipy.sparse import csr_matrix,coo_matrix #optimizes H . v operations. to check if H already row sparse, do  isspmatrix_csr(H)
 from scipy.sparse.linalg import eigsh
+import time
 #############
 def Tran(L,s):
     '''
@@ -156,7 +157,101 @@ def constructH(L,k,mz,pars):
     return H 
 
 
+def constructH_sparse_old(L,k,mz,pars):
+    '''
+    creates basis then fills it up in a specific (k,mz) sector
+    output: Hamiltonian
+    Note: Quite slow, this is the main time constraint. probably need to change method soon.
+    SLower than dense matrix construction but dense memory construction runs out of memory by L=24
+    this is too slow...
+    -----------------------------------------------------------------------------------------------
+    Note: COmparing this construction with the new sparse one, at eg L=22:
+    x       | this| new
+    ------------------
+    memory  |  3MB | 6MB
+    time   H| 800s | 12.55s
+    time Lan| 0.1s | 0.24s
 
+    so while this seems to produce a sparse matrix that makes lanczos a bit faster, since it takes way longer to construct the hamiltonian,
+    and thats the most expensive part, it ends up being much, much slower...
+    '''
+    J = pars['J']
+    #get basis
+    M,S,Rlist = makeBasis(L,k,mz)
+    #real symmetric Hamiltonian allows for a speedup
+    if k == 0 or k == L/2:
+        H = csr_matrix((M,M),dtype=float)
+    else:
+        H = csr_matrix((M,M),dtype=complex)
+    for m in range(M):
+        s = S[m]
+        for i in range(L):
+            j = (i+1)%L # mod takes care of boundary
+            #1)build diagonal part   S^z_{i}S^z_{i+1}. If spins are equal add 1/4 if they are opposite add -1/4.
+            #  if spins on i,i+1 the S^+ S^- will not act on it
+            if (s>>i & 1) == (s>>j & 1):
+                H[m,m] += (1./4)*J
+            # if i and j have different spin, then hamiltonian maps s-->s' that is a state same as s but with spins in i,j flipped.
+            else:
+                H[m,m] -= (1./4)*J
+                #now for the off-diagonal part we need to get s--->s' after flipping the spins and locate it in the basis. This is costly!
+                #a) get new state by flipping spins
+                s2 = flip(s,i,j)
+                #b) get its representative, ie T^ell |r> = |s2>
+                ell,r = findrepstate(L,s2)
+                #c) look up its index. if it is not in the basis, output is -1
+                n = findstate(S,r)
+                #d) add matrix element; taking periodicities into account
+                if n > -1:
+                    if k == 0:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])
+                    elif k == L/2:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])*(-1)**ell
+                    else:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])*np.exp(1j*2.*np.pi**k*ell/L)
+    return H 
+
+def constructH_sparse(L,k,mz,pars):
+    rows = []
+    cols = []
+    data = []
+    J = pars['J']
+    if k == 0 or k == L/2:
+        dtype = complex
+    else:
+        dtype = float
+    #get basis
+    M,S,Rlist = makeBasis(L,k,mz)
+    for m in range(M):
+        s = S[m]
+        for i in range(L):
+            j = (i+1)%L # mod takes care of boundary
+            #1)build diagonal part   S^z_{i}S^z_{i+1}. If spins are equal add 1/4 if they are opposite add -1/4.
+            #  if spins on i,i+1 the S^+ S^- will not act on it
+            if (s>>i & 1) == (s>>j & 1):
+                rows.append(m)
+                cols.append(m)
+                data.append((1./4)*J)
+            # if i and j have different spin, then hamiltonian maps s-->s' that is a state same as s but with spins in i,j flipped.
+            else:
+                rows.append(m)
+                cols.append(m)
+                data.append(-(1./4)*J)
+                #now for the off-diagonal part we need to get s--->s' after flipping the spins and locate it in the basis. This is costly!
+                #a) get new state by flipping spins
+                s2 = flip(s,i,j)
+                #b) get its representative, ie T^ell |r> = |s2>
+                ell,r = findrepstate(L,s2)
+                #c) look up its index. if it is not in the basis, output is -1
+                n = findstate(S,r)
+                #d) add matrix element; taking periodicities into account
+                if n > -1:
+                    rows.append(m)
+                    cols.append(n)
+                    data.append((1./2)*J*np.sqrt(Rlist[m]/Rlist[n])*np.exp(1j*2.*np.pi*k*ell/L))
+    H_coo = coo_matrix((data, (rows, cols)), shape=(M,M), dtype=dtype)
+    H_csr = H_coo.tocsr()
+    return H_csr
 
 
 ############################
@@ -196,6 +291,19 @@ def getSpectrumLanczos(L):
 ############################
 #####HELPER FUNCTIONS#######
 ############################
+def sparsity(X):
+    '''
+    sparsity calculator. For eg L=22, sparsity is 99.98% and this should keep growing w/ L
+    because basis grows exponentially while states connected via hopping  grow linearly(?)
+    note: can't apply this function to sparse(csr) matrix. Have to apply to dense matrix to
+    make sense
+    '''
+    nnz = np.sum(np.abs(X) > 1e-10)  # Non-zero count
+    total = X.size
+    sparsity_percentage = 100 * (1 - nnz / total)
+    print('Sparsity is:', np.round(sparsity_percentage, 2), '%')
+    return sparsity_percentage
+
 def flip(s,i,j):
     '''
     given an integer s, flip its binary elements at indices i,j and return new integer s'
@@ -260,3 +368,48 @@ def findstate_check(S):
             print('    ',i,findstate(S,s))
             print('    ----')
     return
+
+###########################
+if __name__ == "__main__":
+    start_time = time.time()
+    Gs = []
+    Htime = []
+    LanczosTime = []
+    L = 30
+    for l in range(10,L+2,+2):
+        time_1 = time.time()
+        #H = constructH(l,k=0,mz=0,pars={'J':1.})
+        H_sparse = constructH_sparse(l,k=0,mz=0,pars={'J':1.})
+        #sparsity_percentage = sparsity(H)
+        time_2 = time.time()
+        eigenvalues, eigenvectors = eigsh(csr_matrix(H_sparse), k=1, which='SA', tol=1e-10)
+        #eigenvalues2, eigenvectors = eigsh(H, k=1, which='SA', tol=1e-10)
+        #print('eigendifference',eigenvalues[0]/(l/2)-eigenvalues2[0]/(l/2) )
+        data_memory = H_sparse.data.nbytes
+        print(f"Memory used by data array: {data_memory / 1024**2:.2f} MB")
+        time_3 = time.time()
+        Dt1 = time_2 - time_1
+        Dt2 = time_3 - time_2
+        Htime.append(Dt1)
+        LanczosTime.append(Dt2)
+        print(f"H creation time: {Dt1:.2f} seconds")
+        print(f"Lanczos time: {Dt2:.2f} seconds")
+        Gs.append(eigenvalues[0]/(l/2))
+        print('diagonalized system size L=',l)
+        print('GS energy:',eigenvalues[0]/(l/2))
+        print('-'*100)
+    
+    end_time = time.time()
+    print(f"Total elapsed time: {end_time - start_time:.2f} seconds")
+    plt.plot(range(10,L+2,+2),np.array(Gs),'.--',c='k')
+    plt.xlabel('$L$')
+    plt.ylabel('$E/N_e$')
+    plt.savefig('/mnt/users/kotssvasiliou/ED/figures/fig.png')
+    plt.show()
+    #---------------------
+    plt.plot(range(10,L+2,+2),np.array(Htime),'--r',label='H')
+    plt.plot(range(10,L+2,+2),np.array(LanczosTime),'--b',label='Lanczos')
+    plt.ylabel('$t$(s)')
+    plt.legend()
+    plt.ylim([0,np.max(np.array(Htime))])
+    plt.savefig('/mnt/users/kotssvasiliou/ED/figures/fig_time.png')
