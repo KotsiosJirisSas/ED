@@ -118,13 +118,46 @@ def constructH(L,k,mz,pars):
     creates basis then fills it up in a specific (k,mz) sector
     output: Hamiltonian
     '''
+    J = pars['J']
     #get basis
-    M,S = makeBasis(L,k,mz)
+    M,S,Rlist = makeBasis(L,k,mz)
     #real symmetric Hamiltonian allows for a speedup
     if k == 0 or k == L/2:
         H = np.zeros((M,M),dtype=float)
     else:
         H = np.zeros((M,M),dtype=complex)
+    for m in range(M):
+        s = S[m]
+        for i in range(L):
+            j = (i+1)%L # mod takes care of boundary
+            #1)build diagonal part   S^z_{i}S^z_{i+1}. If spins are equal add 1/4 if they are opposite add -1/4.
+            #  if spins on i,i+1 the S^+ S^- will not act on it
+            if (s>>i & 1) == (s>>j & 1):
+                H[m,m] += (1./4)*J
+            # if i and j have different spin, then hamiltonian maps s-->s' that is a state same as s but with spins in i,j flipped.
+            else:
+                H[m,m] -= (1./4)*J
+                #now for the off-diagonal part we need to get s--->s' after flipping the spins and locate it in the basis. This is costly!
+                #a) get new state by flipping spins
+                s2 = flip(s,i,j)
+                #b) get its representative, ie T^ell |r> = |s2>
+                ell,r = findrepstate(L,s2)
+                #c) look up its index. if it is not in the basis, output is -1
+                n = findstate(S,r)
+                #d) add matrix element; taking periodicities into account
+                if n > -1:
+                    if k == 0:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])
+                    elif k == L/2:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])*(-1)**ell
+                    else:
+                        H[m,n] += (1./2)*J*np.sqrt(Rlist[m]/Rlist[n])*np.exp(1j*2.*np.pi**k*ell/L)
+    print(np.all(H==H.T))
+    return H 
+
+
+
+
 
 ############################
 ######## SOLVE H ###########
@@ -163,31 +196,6 @@ def getSpectrumLanczos(L):
 ############################
 #####HELPER FUNCTIONS#######
 ############################
-def findstate(Slist,s):
-    '''
-    Given a state (integer) s, find its basis index in the basis list Slist.
-    Slist is ordered so, can do bisectional search (at each step halve the search space) ~\matchal{O}(logM)
-    ---------------------------------------------------------------------------------------
-    For faster searching algos, use Hash tables (PhysRevB.42.6561)
-    The idea is it constructs a mapping between representatives {I} and position vectors h(I) by
-    constructing a hashing function. ~\matchal{O}(1)
-    ---------------------------------------------------------------------------------------
-    The point is that the first method can impose memory constraints as len(Slist) ~< 2**L so storing Slist can be problematic. 
-    Solution 
-    1) A hash function h(s) so given a state H x s-->s2 we can immediately populate H[h(s),h(s2)]. Problem: Collisions. there will always in general be s2,s3 with same image under h...
-    2)split Slist into two lists where the 1st list holds the first half of the lattice and the 2nd list holds the second half of the lattice. Then search individually in each list.
-      This halves the memory required per list which is huge
-    '''
-    bmin=0
-    bmax=len(Slist)
-    b = bmin + int((bmax-bmin)/2)
-    while s != Slist[b] and bmin < bmax: #latter is used as an exit condition if s is not in Slist!
-        if s < Slist[b]:
-            bmax = b - 1
-        elif s > Slist[b]:
-            bmin = b + 1
-        b = bmin + int((bmax-bmin)/2)
-    return b
 def flip(s,i,j):
     '''
     given an integer s, flip its binary elements at indices i,j and return new integer s'
