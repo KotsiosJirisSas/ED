@@ -95,7 +95,71 @@ def mzstategenerator(L, a, vis = False):
         else:
             # If we reach the end of the for loop without finding a valid transition
             return states
-
+def mzstategenerator2(Lx,Ly, a,kx,ky, vis = False):
+    '''
+    Starting from the *smallest* state (in terms of integer s), generate all other states
+    with the same magnetization (i.e., number of 1's in binary representation).
+    so eg 000111->001011->001101->001110->010110->...->111000
+    ---------------------------
+    Notes:
+    0) Input state should be 2**(n_up)-1 which is 000....011...1  w/ n_up 1's.This state has mz = n_up - L/2
+    1) cancel the visulaization part for speedup
+    2) when i'm creating the bits i 'reverse the order' with the [::-1] 
+       because the algo picks up the i-th *righmost* (smallest) bit which would correspond to 
+       the L-i'th element of the list had it not been reversed. at the final step i reverse again.
+    ---------------------------
+    Time comparison vs looping thorugh all states and checking their bits: (only aplying mz convergence)
+    -----|  L=26 | L=28 |
+    Dumb |  26.8s|111.1s|
+    -----|-------|------|
+    Smart|  17.4s| 76.1s|
+    => already a speed up of 50% which should go up maybe with L.
+    Since building the basis and Hamiltonian is the thing taking up so much time, not Lanczos, this is great!
+    Below L ~ 22 there's actually no difference and maybe the dump way is faster due to overhead.
+    '''
+    states = []  # List to store all generated states
+    norms = []
+    L = Lx*Ly
+    while True:
+        # Visualize the current state
+        #if vis == True: basisVisualizer1D(L, a)
+        #####
+        i2c,c2i = create_lattice_mapping(Lx,Ly)
+        bonds = get_bonds(c2i,i2c,Lx,Ly)
+        Tx,Ty = get_TxTy(Lx,Ly,i2c,c2i)
+        translations = precompute_translations(Lx,Ly,Tx,Ty)
+        #####
+        # Add the current state to the list
+        N = compatibility_k(translations=translations,Lx=Lx,Ly=Ly,kx=kx,ky=ky,s=a)
+        if N != -1:
+            states.append(a)
+            norms.append(N)
+            if vis == True: basisVisualizer2D(Lx,Ly, a)
+        
+        # Convert integer `a` to binary list, reverse for easier manipulation
+        a_bits = list(bin(a)[2:].zfill(L))[::-1]
+        c = 0  # Count consecutive 1's encountered so far
+        for b in range(1, L):
+            if a_bits[b-1] == '1':
+                if a_bits[b] == '1':
+                    c += 1
+                else:
+                    # Update state for next iteration
+                    if c == 0:
+                        for i in range(c, b):
+                            a_bits[i] = '0'
+                    else:
+                        for i in range(0, c):
+                            a_bits[i] = '1'
+                        for i in range(c, b):
+                            a_bits[i] = '0'
+                    a_bits[b] = '1'
+                    # Convert back to integer and update `a`
+                    a = int(''.join(a_bits[::-1]), 2)
+                    break
+        else:
+            # If we reach the end of the for loop without finding a valid transition
+            return states
 #####
 #lattice
 #####
@@ -161,7 +225,7 @@ def get_bonds(c2i,i2c,Lx,Ly):
         bonds.append((i,j1))
         bonds.append((i,j2))
     return bonds
-def translate_spin_state(s,Lx,Ly, T):
+def translate_spin_state(s,L, T):
     """
     Translate a spin state using a given translation dictionary.
     Args:
@@ -173,7 +237,7 @@ def translate_spin_state(s,Lx,Ly, T):
     Q: am i translating correctly or in the 'opposite' way? all is convention anyway
 
     """
-    L = Lx*Ly
+    #L = Lx*Ly
     s_bin = bin(s)[2:].zfill(L)
     # Create a list for the translated spin state
     s_bin_translated = ['0'] * len(s_bin)
@@ -183,7 +247,94 @@ def translate_spin_state(s,Lx,Ly, T):
     # Convert the list back to a string
     return int(''.join(s_bin_translated), 2)
 #######
-#placeholders
+def compose_translation(T, L, times):
+    """
+    Compose a translation dictionary T multiple times.
+
+    Args:
+        T (dict): Translation dictionary (e.g., Tx or Ty).
+        L (int): Total number of spins (Lx * Ly).
+        times (int): Number of times to apply the translation.
+
+    Returns:
+        dict: Composed translation dictionary.
+    """
+    T_composed = {i: i for i in range(L)}  # Start with the identity mapping
+    for _ in range(times):
+        T_composed = {i: T[T_composed[i]] for i in range(L)}
+    return T_composed
+def build_Tnm(Tx, Ty, L, n, m):
+    """
+    Build the combined translation dictionary Tnm = Tx^n Ty^m.
+
+    Args:
+        Tx (dict): x-translation dictionary.
+        Ty (dict): y-translation dictionary.
+        L (int): Total number of spins (Lx * Ly).
+        n (int): Number of x-translations.
+        m (int): Number of y-translations.
+
+    Returns:
+        dict: Combined translation dictionary Tnm.
+    """
+    # Compose Ty m-times
+    Ty_m = compose_translation(Ty, L, m)
+    # Compose Tx n-times, starting from Ty^m
+    Tnm = compose_translation(Tx, L, n)
+    Tnm = {i: Tnm[Ty_m[i]] for i in range(L)}
+    return Tnm
+def precompute_translations(Lx, Ly, Tx, Ty):
+    """
+    Precompute Tnm dictionaries for a range of (n, m) translations.
+
+    Args:
+        Lx (int): Number of columns in the lattice.
+        Ly (int): Number of rows in the lattice.
+        Tx (dict): x-translation dictionary.
+        Ty (dict): y-translation dictionary.
+        max_n (int): Maximum x-translations to precompute.
+        max_m (int): Maximum y-translations to precompute.
+
+    Returns:
+        dict: A dictionary where keys are (n, m) pairs, and values are Tnm dictionaries.
+    """
+    max_n = Lx
+    max_m = Ly
+    L = Lx * Ly
+    translations = {}
+    for n in range(max_n):
+        for m in range(max_m):
+            Tnm = build_Tnm(Tx, Ty, L, n, m)
+            translations[(n, m)] = Tnm
+    return translations
+
+def compatibility_k(translations,Lx,Ly,kx,ky,s):
+    '''
+    Starting from a state, check if
+        1) it is the representative
+        2) if it is compatible with momentum k
+    If both tests pass, output:
+        1) The state's normalization
+    '''
+    D = 1 # counts number of unique states
+    F = 0 # the complex phase
+    N = -1 # normalization/pass
+    #start generateing translations. as soon as you hit a state that has smaller integer representation, exit. This should speed up things.
+    for n in range(Lx):
+        for m in range(Ly):
+            Tnm = translations[(n,m)]
+            t = translate_spin_state(s,L=Lx*Ly,T = Tnm)
+            if t < s:
+                return N
+            elif t > s:
+                D += 1
+            elif t == s:
+                    #we came across og state
+                    F += np.exp(-1j*(kx*n/Lx+ky*m/Ly)*2*np.pi)
+    N = float(D * np.abs(F)**2)
+    if N < 1e-5:
+        N = -1         
+    return N
 ######
 
 #####
@@ -228,6 +379,7 @@ def basisVisualizer2D(L1,L2,psi):
         row = psi_2[y*L1:(y+1)*L1][::-1]
         line = ''.join(uparrow if bit == '1' else downarrow for bit in row)
         print(line)
+    print('*'*4)
 def countBits(x):
     '''Counts number of 1s in bin(n)'''
     #From Hacker's Delight, p. 66
