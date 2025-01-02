@@ -7,6 +7,7 @@ import scipy.stats as spst
 from scipy.sparse import csr_matrix,coo_matrix #optimizes H . v operations. to check if H already row sparse, do  isspmatrix_csr(H)
 from scipy.sparse.linalg import eigsh
 import time
+import pickle
 ###########################
 #######HELPER FUNCTIONS####
 ###########################
@@ -159,7 +160,7 @@ def mzstategenerator2(Lx,Ly, a,kx,ky, vis = False):
                     break
         else:
             # If we reach the end of the for loop without finding a valid transition
-            return states
+            return states,norms
 #####
 #lattice
 #####
@@ -336,8 +337,10 @@ def compatibility_k(translations,Lx,Ly,kx,ky,s):
         N = -1         
     return N
 ######
-
 #####
+# create hamiltonian
+#####
+
 #####
 
 def basisVisualizer1D(L,psi):
@@ -395,3 +398,39 @@ def binp(num, length=4):
     regular bin(x) returns '0bbinp(x)' and the 0 and b can fuck up other stuff
     '''
     return format(num, '#0{}b'.format(length + 2))[2:]
+####################
+######EXECUTION#####
+####################
+if __name__ == "__main__":
+    start_time = time.time()
+    Lx = 4
+    Ly = 4
+    i2c,c2i = create_lattice_mapping(Lx,Ly)
+    bonds = get_bonds(c2i,i2c,Lx,Ly)
+    Tx,Ty = get_TxTy(Lx,Ly,i2c,c2i)
+    translations = precompute_translations(Lx,Ly,Tx,Ty)
+    States = {}
+    Norms = {}
+    
+    for nz in range(0,int(Lx*Ly+1)):
+    #for nz in range(0,int((Lx*Ly)/2+1)):
+        a = 2**nz - 1
+        #basisVisualizer2D(L1=Lx,L2=Ly,psi=a)
+        mz = nz - int((Lx*Ly)/2)
+
+        for kx in range(int(-Lx/2 + 1),int(Lx/2+1)):
+            for ky in range(int(-Ly/2 + 1),int(Ly/2+1)):
+        #for kx in range(0,1):
+        #    for ky in range(0,1):
+
+                time_a = time.time()
+                states,norms = mzstategenerator2(Lx=Lx,Ly=Ly,a=a,kx=kx,ky=ky,vis=False)
+                States[(mz,kx,ky)] = states
+                Norms[(mz,kx,ky)] = norms
+                time_b = time.time()
+                #print('Basis for (mz,kx,ky):',str((mz,kx,ky)))
+                print('Basis for (mz,kx,ky):',str((mz,kx,ky)),' has size',len(states),f' and took {time_b - time_a:.2f} seconds") ')
+    end_time = time.time()
+    print(f"Total elapsed time: {end_time - start_time:.2f} seconds")
+    with open('state_dict_'+str(Lx)+'_'+str(Ly)+'.pkl', 'wb') as f:pickle.dump(States, f)
+    with open('state_norm_dict_'+str(Lx)+'_'+str(Ly)+'.pkl', 'wb') as f:pickle.dump(Norms, f)
