@@ -373,7 +373,7 @@ At first this will be non-interacting chains with just hoppings
 2nd step: how to tensor product sparse matrices?
 
 To do:
-Fix total filling and enumerate all possible chain configs. PLot hisogram of their sizes
+Fix total filling and enumerate all possible chain configs. Plot hisogram of their sizes
 Expect: largest section is fully symmetric one.
 Then the next step is to construct bases and diagonalize
 '''
