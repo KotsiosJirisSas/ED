@@ -11,7 +11,12 @@ from itertools import product
 from math import comb,log10
 from collections import Counter
 '''
-Some test code for a system of 1D chains:
+Code that can generate all symmetry-inequivalent configurations of chain occupations.
+These unique configurations can then be fed to a different function to create their Hamiltonian and diagonalize.
+For 2x2 system, there are ~ 5*1e5 different configurations, but only ~ 2*1e4 unique ones.
+For 3x3 system, there are ~ 7*1e10 different configurations, but ~ 1*1e9 unique ones.
+
+The optimal reduction is by the order of the symmetry group which i think is 6L**2 (3 from C3, 2 from spin-inversion, L**2 from translations)
 
 
 |   |   |   |               |   |   |   |               |   |   |   |       
@@ -45,26 +50,30 @@ We are not using translational symmetry the usual way because of the way we are 
 
 The total number of sectors here is (1+L)**(6*L)
 and i want to see the effective number of sectors, ie those sectors not related by any g \in G.
+These should scale like ~ (1+L)**(6*L)/(6L**2)
 ------------------------------------------------------------------------------------------------
-16 Jan Log:
-    To do:
-            0) Just a bit more testing
-            1) Section reduction function
-            2) configuration to index
-            3) Account for weights
-            4) Sketch solution for L=3 or (2x3) system...
+17 Jan Log:
+   Everything is working great.
+   Tested the action of the symmetries on arbitrary L x L systems.
+   To do:
+            1) Figure out how to consistencly define the chains for a L1 x L2 system with L1 != L2
+            2) Figure out how to dynamically generate the configurations for systems larger than 2x2.
 '''
 def section_generator(L):
     '''
+    Generates all configurations for a system of size L
     Args:
-        L(int): The number of chains in the system (per flavor)
-        L(int): The sites in each chain
-        Equal in this case. Need to generalize
+        L(int):         The number of chains in the system (per flavor)
+        L(int):         The sites in each chain
+        (Equal in this case. Need to generalize)
     Returns:
         All possible configurations
         A given configuration(section) has the form (n_1,n_2,.....,n_3L)
+    
+    
+    ###########################################################################################################################################################
     Convention: First L numbers are for the first valley parallel to a1, [L->2L] are second valley parallel to a2, [2L->3L] are third valley parallel to a3.
-    #################################
+    
     L=1: #~64      time = 0s
     L=2: #~5*1e5   time = 0.06s
     L=3: #~7*1e10  time ~ 1.5 hours process is killed, maybe too much memory. would require about 24TB of memory woOoOah
@@ -92,11 +101,11 @@ def section_generator_partial(L, n):
     and returns them as a list of tuples. The temporary file is deleted after use.
 
     Args:
-        L (int): The system size (number of chains per valley and sites per chain).
-        n (int): The number of configurations to generate.
+        L (int):        The system size (number of chains per valley and sites per chain).
+        n (int):        The number of configurations to generate.
 
     Returns:
-        list: A list of configurations (tuples) equivalent to section_generator(L).
+        list:           A list of configurations (tuples) equivalent to section_generator(L).
     """
     # Temporary file to store configurations
     temp_file = "configurations_temp.txt"
@@ -258,7 +267,116 @@ def GroupAction(s,n,m,m_c3,m_spin,L):
     for y in range(m_spin):
         s_temp = S_inv(s_temp)
     return s_temp
+def c2i(config,L):
+    """
+    Finds the index of a given configuration.
+    *add explanation for mapping*
 
+    Args:
+        config(tuple):          A configuration in the form [(up_spin), (down_spin)].
+        L(int):                 Linear system size.
+
+    Returns:
+        total_index(int):       The index of the configuration.
+    """
+    # Unpack the red and blue configurations
+    up_config,down_config = config
+
+    # Convert the tuple to a unique index
+    base = L + 1
+    up_index= sum(r * (base ** i) for i, r in enumerate(reversed(up_config)))
+    down_index = sum(b * (base ** i) for i, b in enumerate(reversed(down_config)))
+    
+    # Combine the two indices
+    total_index = up_index * (base ** (3*L)) + down_index
+    
+    return total_index
+def section_reduction(L):
+    '''
+    Generates all the states, then goes throught them, applies all the group elements and bunches the configs together in equivalence classes: if \exists g \in G: g(c)=c' => c ~c'
+    Then it calls the reweighing function that turns equivalence classes into two numbers; Their representative and their order(weight)
+    Args:
+        dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the order of the group
+
+    Returns:
+        Equivalence_c...(dict): Dictionaty of the equivalence classes. Keys are the representative configurations and values their weights.
+        Tot_number(int):        Total number of configurations
+        Reduced_number(int):    Number of configurations after this reduction
+    '''
+    configs = section_generator(L)
+    Tot_number = (1+L)**(6*L)
+    Equivalence_classes = {}
+    mask = [True]*Tot_number # checks if this state has been 'met' before
+    for i,c in enumerate(configs):
+        if mask[i] == False:
+            continue
+        Equivalence_classes[i] = []
+        #######
+        for n in range(2):
+            for m in range(2):
+                for m_c3 in range(3):
+                        for m_spin in range(2):
+                            c_new = GroupAction(c,n,m,m_c3,m_spin,L)
+                            i_new = c2i(c_new,L)
+                            Equivalence_classes[i].append(i_new)
+                            mask[i_new] = False
+    Equivalence_classes = reweight(Equivalence_classes)
+    Reduced_number = len(Equivalence_classes)
+    print('Total Number of configurations',Tot_number)
+    print('Reduced Number of configurations',Reduced_number)
+    return Equivalence_classes,Reduced_number,Tot_number
+def reweight(dict):
+    '''
+    Takes the symmetry-reduced configurations and 'reweights' them. Ie for eg [x_1]:(x_1,x_2,x_3) in the same equivalence class, it turns it into [x_1]:(3) 
+    Meaning for calculations, x_1 cnofiguration should count 3 times as it really represents three states.
+
+    Args:
+        dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the ordger of the group
+
+    Returns:
+        dict_out(dictionary):   Dictionary of the form (key,value):(x_1,w_1) with w_1 the weight corresponding to configuration x_1
+    
+    '''
+    dict_out = {}
+    for k in dict.keys():
+        lst = dict[k]
+        element_counts = Counter(lst)
+        unique_elements = list(element_counts.keys())
+        multiplicities = list(element_counts.values())
+        if not multiplicities.count(multiplicities[0]) == len(multiplicities):
+            #checks that all items in an equivalence class appear an equal amount of times: 1,2,3,4,6,8,12,24
+            print('uhhhhhhhhhhhhhhhhh')
+            quit()
+        weight = len(unique_elements)
+        #dict_out[k] = (unique_elements,weight) # this returns something that holds info of all equivalent states
+        dict_out[k] = weight # this only holds info of the *representative* configuration through the dict key
+    return dict_out
+def Qnumber_printout(c):
+    '''
+    Outputs the quantum numbers of each configuration
+
+    Args:
+        c(nested tuple):        The configuration
+
+    Returns:
+        Qs(tuple):              Nested Tuple of quantum numbers:(\\nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
+    
+    '''
+    up_c,down_c = c
+    L = int(len(up_c)/3)
+    N_1_up,N_2_up,N_3_up = sum(up_c[:L]),sum(up_c[L:2*L]),sum(up_c[2*L:3*L])
+    N_1_down,N_2_down,N_3_down = sum(down_c[:L]),sum(down_c[L:2*L]),sum(down_c[2*L:3*L])
+    N_up = sum(up_c)
+    N_down = sum(down_c)
+    nu = (N_up+N_down)/L**2
+    Sz_tot = (N_up-N_down)/2
+    N_1 = N_1_up + N_1_down
+    N_2 = N_2_up + N_2_down
+    N_3 = N_3_up + N_3_down
+    Sz_1 = (N_1_up - N_1_down)/2
+    Sz_2 = (N_2_up - N_2_down)/2
+    Sz_3 = (N_3_up - N_3_down)/2
+    return (nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
 #####################################################################################################################################
 #####################################################################################################################################
 #####################################################################################################################################
@@ -268,7 +386,10 @@ def GroupAction(s,n,m,m_c3,m_spin,L):
 #####################################################################################################################################
 #####################################################################################################################################
 #####################################################################################################################################
-def feature1():
+def test1():
+    '''
+    Testing time to generate sections
+    '''
     for L in [1,2,3]:
         stime = time.time()
         configs = section_generator(L)
@@ -277,28 +398,9 @@ def feature1():
         ftime = time.time()
         print(f"elapsed time: {ftime-stime:.2f} seconds")
     return
-def feature2():
+def test2():
     '''
-    translation test that two functions are the same
-    '''
-    L = 2
-    configs = section_generator(L)
-    itime = time.time()
-    for i,config in enumerate(configs):
-        if i % 10000 ==0:
-            print(i)
-        for m in range(2):
-            for n in range(2):
-                config1 = T(config,n,m,L)
-                config2 = T_old(config,n,m,L)
-                if config2!=config1:
-                    print('uhuhh')
-                    quit()
-                
-    return
-def feature3():
-    '''
-    translation test that times two translation functions
+    Test comparing time to implement translations between two functions
     '''
     L = 2
     configs = section_generator(L)
@@ -318,9 +420,9 @@ def feature3():
     ftime = time.time()
     print(f"elapsed time: {ftime-itime:.2f} seconds")
     return
-def feature4():
+def test3():
     '''
-    For L=2 How long does it take to apply all g's on all configurations?
+    Tests for L=2 how long does it take to apply all g's on all configurations?
     Takes about ~1.5 mins.
     '''
     L = 2
@@ -336,12 +438,12 @@ def feature4():
     ftime = time.time()
     print(f"elapsed time: {ftime-itime:.2f} seconds")
     return
-def feature5():
+def test4():
     '''
-    This is to test the operators and their commutator relationships
+    Tests the operators and their commutator relationships. Either with full configs or a partial construction (see test5)
     '''
-    L = 12
-    n = 10000
+    L = 3
+    n = 100
     partial = True
     if partial == True:
         configs = section_generator_partial(L,n)
@@ -355,6 +457,8 @@ def feature5():
     print('='*20,'Testing','='*21)
     print('='*50)
     for i,config in enumerate(configs):
+        if i< 20:
+            print(config)
         config_temp = config
         config_temp = GroupAction(config_temp,n=0,m=0,m_c3=2,m_spin=0,L=L)
         config_temp = GroupAction(config_temp,n=1,m=0,m_c3=1,m_spin=0,L=L)
@@ -400,32 +504,96 @@ def feature5():
     print('='*50)
     print(f"elapsed time: {ftime-itime:.2f} seconds")
     return
-def feature6():
+def test5():
+    '''
+    Tests partial configuration generation for L>2
+    '''
     L=3
     n=100
     configurations = section_generator_partial(L, n)
     print(configurations)
     return
-def feature7():
+def test6():
+    ''''
+    Tests the config to index function
+    '''
+    print('=='*50)
+    print('=='*15,'Testing Config 2 index function after group action','=='*15)
+    print('=='*50)
+    itime = time.time()
+    L = 2
+    configs = section_generator(L)
+    for i,c in enumerate(configs):
+        for n in range(2):
+            for m in range(2):
+                for m_c3 in range(3):
+                        for m_spin in range(2):
+                            c_new = GroupAction(c,n,m,m_c3,m_spin,L)
+                            i_new = c2i(c_new,L)
+                            #checking:
+                            if c_new != configs[i_new]:
+                                print('error mapping')
+                                print(c_new,configs[i_new])
+                                quit()
+    ftime = time.time()
+    print('=='*50)
+    print('=='*40,'Success','=='*40)
+    print(f"elapsed time: {ftime-itime:.2f} seconds")
+    print('=='*50)
+    return
+def test7():
+    '''
+    Tests the Equivalent sector generator
+    Specifically tests that the *sum_total* of the reduced configs equals the number of total configs
+    '''
+    L = 2
+    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    print(Tot_number)
+    print(Reduced_number)
+    print(Tot_number/Reduced_number,'vs optimal',3*L*L*2)
+    sum_reduced = 0
+    sum_total = 0
+    for k in Equivalence_clases.keys():
+        sum_reduced +=1
+        sum_total += Equivalence_clases[k][1]
+    print(sum_reduced)
+    print(sum_total)
+    return
+def test8():
+    '''
+    Tests the function that prints the quantum numbers of a given configuration
+    '''
+    L = 2
+    configs = section_generator(L)
+    print(configs[123456])
+    print(Qnumber_printout(c=configs[123456]))
+    return
+def exe1():
+    print('executing....')
     return
 ################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("feature", type=str, choices=["feature1", "feature2","feature3","feature4","feature5", "feature6","feature7","feature8"], help="Feature to run")
+    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8"], help="test to run")
+    parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
 
     args = parser.parse_args()
 
-    if args.feature == "feature1":
-        feature1()
-    elif args.feature == "feature2":
-        feature2()
-    elif args.feature == "feature3":
-        feature3()
-    elif args.feature == "feature4":
-        feature4()
-    elif args.feature == "feature5":
-        feature5()
-    elif args.feature == "feature6":
-        feature6()
-    elif args.feature == "feature7":
-        feature7()
+    if args.test == "test1":
+        test1()
+    elif args.test == "test2":
+        test2()
+    elif args.test == "test3":
+        test3()
+    elif args.test == "test4":
+        test4()
+    elif args.test == "test5":
+        test5()
+    elif args.test == "test6":
+        test6()
+    elif args.test == "test7":
+        test7()
+    elif args.test == "test8":
+        test8()
+    if args.execute == "exe1":
+        exe1()
