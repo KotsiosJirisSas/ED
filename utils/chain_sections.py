@@ -2,12 +2,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as spst
-from scipy.sparse import csr_matrix,coo_matrix #optimizes H . v operations. to check if H already row sparse, do  isspmatrix_csr(H)
+from scipy.sparse import csr_matrix,coo_matrix,kron,identity #optimizes H . v operations. to check if H already row sparse, do  isspmatrix_csr(H)
 from scipy.sparse.linalg import eigsh
 import time
 import pickle
 import argparse
-from itertools import product
+from itertools import product,combinations
 from math import comb,log10
 from collections import Counter
 '''
@@ -388,6 +388,129 @@ def fcombinatoric(c):
     for i in range(L):
         dim *= comb(L,c_up[i])*comb(L,c_down[i])*comb(L,c_up[i+L])*comb(L,c_down[i+L])*comb(L,c_up[i+2*L])*comb(L,c_down[i+2*L])
     return dim
+
+def generate_basis(c):
+    '''
+    Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
+    
+    Args:
+        c(nested tuple):        The chain configuration
+    Returns:
+        basis(list):            A list of all states in the hilbert space spanned by the configuration
+        length_basis(int):      The size of the HIlbert space
+        Hamiltonians(list):     List of 6L**2 npcarray Hamiltonians to be combined into a full hamiltonian
+    '''
+    t = 1
+    basis = []
+    Hamiltonians = []
+    L = int(len(c[0])/3)
+    for chain in range(int(3*L)):
+        chain_up = c[0][chain]
+        chain_down = c[1][chain]
+        basis_up = generate_partitions(L,chain_up)
+        Hamiltonians.append(generate_chain_Hamiltonian(basis_up))
+        basis_down = generate_partitions(L,chain_down)
+        Hamiltonians.append(generate_chain_Hamiltonian(basis_down))
+        if len(basis) == 0: 
+            basis = basis_up
+            basis = [old + new for old in basis for new in basis_down]
+        else:
+            basis = [old + new for old in basis for new in basis_up]
+            basis = [old + new for old in basis for new in basis_down]
+    return basis,len(basis),Hamiltonians
+def generate_chain_Hamiltonian(basis,t=1,L=2):
+    '''
+    Generates the small non-interacting Hamiltonian for a single chain and spin. The dimension is read from the basis.
+    The full Hilbert space for a single chain and spin is 2**L but in our case the Hilbert space will be L Choose N_spin. For L=2, dim =1 or 2 while for L=3, dim = 1 or 3 
+
+    Parameters:
+        Basis(list):        A list containing all states (represented by binaries) in the chain's Hilbert space
+        t(float):           Hopping strength
+    Returns:
+        H(npc array):       A (densely constructed) Hamiltonian
+    
+    '''
+    #step1) Build lookup table for all states(very small table). That can just be the basis_up/down list
+    #step2) go through basis size, associate index with state and check hopping, mapping it back to a new state.
+    #step3) done#
+    dim = len(basis)
+    basis_dec = [int(el,2) for el in basis]
+    L_chain = L#no better way???
+    H = np.zeros((dim,dim),dtype=float)
+    for m in range(dim):
+        s = basis_dec[m]
+        for i in range(L_chain):
+            j=(i+1)%L_chain
+            s2 = hop(s,i,j)
+            if s2 != -1:
+                try:
+                    n = basis_dec.index(s2)
+                except ValueError:
+                    print('Index not found...quitting!')
+                    quit()
+                H[n,m] -= t
+    return H
+def hop(s,i,j):
+    '''
+    CHecks if hopping is allowed between sites i and j for state s and if it is,
+    it outputs the resulting state
+
+    Args:
+        s(bin):         A binary number with L digits(L=length of chain) signifying the state of the chain
+        i(int),j(int):  0 =<i,j<L Integers representing sites on the chain
+
+    Returns:
+        s2:             Either -1 to signify no allowed hopping or a binary to denote the resulting state after the hopping
+    '''
+    mask = 2**(i)+2**(j)
+    K = s & mask #bitwise AND.
+    L = K ^ mask #bitwise XOR.
+    # L will have structure 0000000[i]0000[j]00000 and there's four cases:
+    #1) L = mask means I1[i]=I1[j]=0 -> hopping is not allowed
+    #2) L = 000..00 means I1[i]=I1[j]=1 -> hopping is not allowed
+    #3&4) L = ...[1]...[0]... or L = ...[0]...[1]... means hopping is allowed, in which case new integer is 
+    if L == mask or L == 0:
+        s2 = -1#flag to signify no hopping
+    else:
+        s2 = s - K + L
+    return s2
+def generate_partitions(L, N):
+    """
+    Generate all possible partitions of N electrons in a chain with L sites as binary strings.
+
+    Parameters:
+        L (int): Number of sites.
+        N (int): Number of electrons.
+
+    Returns:
+        list: List of binary strings representing the partitions.
+    """
+
+    if N > L:
+        raise ValueError("Number of electrons (N) cannot exceed number of sites (L).")
+
+    # Generate all combinations of N positions from L sites
+    partitions = []
+    for positions in combinations(range(L), N):
+        # Create a binary representation of the partition
+        binary = ['0'] * L
+        for pos in positions:
+            binary[pos] = '1'
+        partitions.append(''.join(binary))
+
+    return partitions
+
+def hubbard_cost():
+    '''
+    calculates the hubbard cost of a binary string based on a vector of its locations
+    we have a string 
+    eg 
+    s = 0011010101010
+    of size 6L**2. each binary position is associated with a position on the lattice, eg 
+    v = 123413241423123413241423 (for a 2x2 system)
+    based on this v, parse through s and if there are eg n>3 electrons at site i (of different spins/valleys) add a cost U*n.
+    '''
+    return
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -432,6 +555,29 @@ def Configs_to_chain(L=2,number='full'):
     print(N)
     return
 
+def partitions(value,parts,max):
+    """
+    Generates all way to partition a *value* into *parts* of non-negative integers.
+    It then filters any partition where any entry exceeds *max*
+    ----------------------
+    Example of partition:
+    value=4,parts=3---->(1,1,2)
+    """
+    def helper(remaining, parts_left):
+        # Base case: If no parts left to fill
+        if parts_left == 0:
+            if remaining == 0:
+                yield []
+            return
+        # Generate partitions
+        for i in range(remaining + 1):  # Allow any non-negative integer
+            for rest in helper(remaining - i, parts_left - 1):
+                yield [i] + rest
+    # Generate all partitions
+    all_partitions = list(helper(value,parts))
+    # Filter out partitions with any entry > L2
+    filtered_partitions = [p for p in all_partitions if all(x <= max for x in p)]
+    return filtered_partitions
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -453,54 +599,168 @@ Essentially, for each chain the input will only be
 The relevant properties of the chain will then be its hamiltonian as well as its lattice location.
 '''
 class chain():
-    def __init__(self,params,H_params):
+    def __init__(self,params):
         self.config = params['config']
-        self.H_params = H_params
+        self.H_params = params['H_params']
         self.L = params['L']
         self.loc = params['loc']
-        self.Ne_up = self.config[0]
-        self.Ne_down = self.config[1]
+        #self.Ne_up = self.config[0]
+        #self.Ne_down = self.config[1]
+        #self.basis() #generate basis
         return
     def basis(self):
         '''
+        Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
+        
+        Args:
+            c(nested tuple):        The chain configuration
+        Returns:
+            basis(list):            A list of all states in the hilbert space spanned by the configuration
+            length_basis(int):      The size of the HIlbert space
+            Hamiltonians(list):     List of 6L**2 npcarray Hamiltonians to be combined into a full hamiltonian
+        '''
+        c = self.config
+        L = self.L
+        basis = []
+        Hamiltonians = []
+        for chain in range(int(3*L)):
+            chain_up = c[0][chain]
+            chain_down = c[1][chain]
+            basis_up = generate_partitions(L,chain_up)
+            Hamiltonians.append(self.chain_Hamiltonian(basis_up))
+            basis_down = self.generate_partitions(L,chain_down)
+            Hamiltonians.append(self.chain_Hamiltonian(basis_down))
+            if len(basis) == 0: 
+                basis = basis_up
+                basis = [old + new for old in basis for new in basis_down]
+            else:
+                basis = [old + new for old in basis for new in basis_up]
+                basis = [old + new for old in basis for new in basis_down]
+        self.basis = basis
+        self.dim = len(basis)
+        self.chain_hamiltonians = Hamiltonians
+        return 
+    def chain_Hamiltonian(self,chain_basis):
+        '''
+        Generates the small non-interacting Hamiltonian for a single chain and spin. The dimension is read from the basis.
+        The full Hilbert space for a single chain and spin is 2**L but in our case the Hilbert space will be L Choose N_spin. For L=2, dim =1 or 2 while for L=3, dim = 1 or 3 
+
+        Parameters:
+            Basis(list):        A list containing all states (represented by binaries) in the chain's Hilbert space
+            t(float):           Hopping strength
+        Returns:
+            H(npc array):       A (densely constructed) Hamiltonian
         
         '''
-        self.N = comb(self.L,self.Ne_up)*comb(self.L,self.Ne_down)
-        return self.N
-    #####################
-    ####combinatorics####
-    #####################
-    def partitions(value,parts,max):
+        #step1) Build lookup table for all states(very small table). That can just be the basis_up/down list
+        #step2) go through basis size, associate index with state and check hopping, mapping it back to a new state.
+        #step3) done#
+        dim = len(chain_basis)
+        basis_dec = [int(el,2) for el in chain_basis]
+        L_chain = self.L
+        t = self.H_params['t']
+        H = np.zeros((dim,dim),dtype=float)
+        for m in range(dim):
+            s = basis_dec[m]
+            if L_chain == 2: L_max = 1
+            else:
+                L_max = L_chain
+            #in L=2 case there is overcounting of processes since 0<-->1 and 1<--->0 . compare to eg L=3: 0<-->1,1<-->2,2<-->0 
+            for i in range(L_max):
+                j=(i+1)%L_chain
+                s2 = hop(s,i,j)
+                if s2 != -1:
+                    try:
+                        n = basis_dec.index(s2)
+                    except ValueError:
+                        print('Index not found...quitting!')
+                        quit()
+                    H[n,m] -= t
+        return H
+    def configuration_Hamiltonian(self):
+        '''
+        Returns the f*full* Hamiltonian of the configuration
+        Steps:
+        1)Creates tensor product for hopping Hamiltonians sparsely
+        2)Adds interactions and chemical potential (all are diagonal terms)
+        '''
+        num_chains = len(self.chain_hamiltonians)
+        total_dim = np.prod([h.shape[0] for h in self.chain_hamiltonians])
+        H = csr_matrix((total_dim, total_dim), dtype=np.float64)
+        # Loop through each local Hamiltonian and embed it in the tensor product space
+        for i, h_local in enumerate(self.chain_hamiltonians):
+            h_local_sparse = csr_matrix(h_local)
+            # Identity operators for spaces before and after the current subspace
+            identity_before = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i)]), format="csr") if i > 0 else 1
+            identity_after = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i + 1, num_chains)]), format="csr") if i < num_chains - 1 else 1
+            # Embed the local Hamiltonian in the full tensor product space
+            term = kron(kron(identity_before, h_local_sparse), identity_after, format="csr")
+            H += term
+        ######################################
+        ##### interactions#######
+        ##########################
+        diff = H - H.getH()
+        max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
+        if max_diff != 0:
+            print('Hamiltonian is not hermitia!!!!',max_diff)
+        return H
+    @staticmethod
+    def generate_partitions(L, N):
         """
-        Generates all way to partition a *value* into *parts* of non-negative integers.
-        It then filters any partition where any entry exceeds *max*
-        ----------------------
-        Example of partition:
-        value=4,parts=3---->(1,1,2)
+        Generate all possible partitions of N electrons in a chain with L sites as binary strings.
+
+        Parameters:
+            L (int): Number of sites.
+            N (int): Number of electrons of certain spin.
+
+        Returns:
+            list: List of binary *strings* representing the partitions.
         """
-        def helper(remaining, parts_left):
-            # Base case: If no parts left to fill
-            if parts_left == 0:
-                if remaining == 0:
-                    yield []
-                return
-            # Generate partitions
-            for i in range(remaining + 1):  # Allow any non-negative integer
-                for rest in helper(remaining - i, parts_left - 1):
-                    yield [i] + rest
-        # Generate all partitions
-        all_partitions = list(helper(value,parts))
-        # Filter out partitions with any entry > L2
-        filtered_partitions = [p for p in all_partitions if all(x <= max for x in p)]
-        return filtered_partitions
+
+        if N > L:
+            raise ValueError("Number of electrons (N) cannot exceed number of sites (L).")
+
+        # Generate all combinations of N positions from L sites
+        partitions = []
+        for positions in combinations(range(L), N):
+            # Create a binary representation of the partition
+            binary = ['0'] * L
+            for pos in positions:
+                binary[pos] = '1'
+            partitions.append(''.join(binary))
+
+        return partitions
+    @staticmethod
+    def hop(s,i,j):
+        '''
+        CHecks if hopping is allowed between sites i and j for state s and if it is,
+        it outputs the resulting state
+
+        Args:
+            s(bin):         A binary number with L digits(L=length of chain) signifying the state of the chain
+            i(int),j(int):  0 =<i,j<L Integers representing sites on the chain
+
+        Returns:
+            s2:             Either -1 to signify no allowed hopping or a binary to denote the resulting state after the hopping
+        '''
+        mask = 2**(i)+2**(j)
+        K = s & mask #bitwise AND.
+        P = K ^ mask #bitwise XOR.
+        # L will have structure 0000000[i]0000[j]00000 and there's four cases:
+        #1) L = mask means I1[i]=I1[j]=0 -> hopping is not allowed
+        #2) L = 000..00 means I1[i]=I1[j]=1 -> hopping is not allowed
+        #3&4) L = ...[1]...[0]... or L = ...[0]...[1]... means hopping is allowed, in which case new integer is 
+        if P == mask or P == 0:
+            s2 = -1#flag to signify no hopping
+        else:
+            s2 = s - K + P
+        return s2
+
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
-####################################################################################################################################
-##########################################  Multi-chain Hamiltonian ################################################################
-####################################################################################################################################
-####################################################################################################################################
+##################################################### Diagonalization ##############################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -701,6 +961,82 @@ def test9():
     #Configs_to_chain()
     total_hilbert_space_dim()
     return
+def test10():
+    '''
+    Plots histogram of size of hilbert spaces
+    '''
+    L = 2
+    configs = section_generator(L)
+    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    dimensions = []
+    for k in Equivalence_clases.keys():
+        c = configs[k]
+        basis,lenbasis = generate_basis(c)
+        dimensions.append(lenbasis)
+    bins = np.logspace(np.log10(min(dimensions)), np.log10(max(dimensions)), num=10)
+    hist, edges, _ = plt.hist(dimensions, bins=bins, edgecolor='black', log=True)  # Use log scale for frequency
+    plt.savefig('uhhhhhhhh.png')
+    return
+def test11():
+    '''
+    Time how long it takes to generate and diagonalize(Lanczos w k=<6 ) (in non-parallelized way) all configuration Hamiltonians
+    '''
+    timei = time.time()
+    L = 2
+    configs = section_generator(L)
+    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    timef = time.time()
+    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
+    #start diagonalizing
+    params = {'L':2,'loc':0,'H_params':{'t':1}}
+    Hilbert_Space = 0
+    timei = time.time()
+    for k in Equivalence_clases.keys():
+        c = configs[k]
+        params['config'] = c
+        chain_instance = chain(params)
+        chain_instance.basis()
+        H = chain_instance.configuration_Hamiltonian()
+        dim = chain_instance.dim
+        if dim>1:
+            #print(chain_instance.dim)
+            eigsh(H,k=dim-1, which='SA', tol=1e-10)
+        Hilbert_Space += Equivalence_clases[k]*dim
+    timef = time.time()
+    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
+    print(Hilbert_Space)
+    return
+def test12():
+    '''
+    Time how long it takes to generate and diagonalize(full spectrum) (in non-parallelized way) all configuration Hamiltonians
+    Check overhead time vs storing directly as dense matrix
+    '''
+    timei = time.time()
+    L = 2
+    configs = section_generator(L)
+    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    timef = time.time()
+    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
+    #start diagonalizing
+    params = {'L':2,'loc':0,'H_params':{'t':1}}
+    Hilbert_Space = 0
+    timei = time.time()
+    for k in Equivalence_clases.keys():
+        c = configs[k]
+        params['config'] = c
+        chain_instance = chain(params)
+        chain_instance.basis()
+        H = chain_instance.configuration_Hamiltonian()
+        dim = chain_instance.dim
+        if dim>1:
+            H_dense = H.toarray()
+            np.linalg.eigh(H_dense)
+            eigsh(H,k=dim-1, which='SA', tol=1e-10)
+        Hilbert_Space += Equivalence_clases[k]*dim
+    timef = time.time()
+    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
+    print(Hilbert_Space)
+    return
 def exe1():
     print('executing....')
     return
@@ -718,7 +1054,7 @@ def exe1():
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9"], help="test to run")
+    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11"], help="test to run")
     parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
 
     args = parser.parse_args()
@@ -741,5 +1077,9 @@ if __name__ == "__main__":
         test8()
     elif args.test == "test9":
         test9()
+    elif args.test == "test10":
+        test10()
+    elif args.test == "test11":
+        test11()
     if args.execute == "exe1":
         exe1()
