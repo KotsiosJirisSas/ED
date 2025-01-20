@@ -607,7 +607,12 @@ class chain():
         #self.Ne_up = self.config[0]
         #self.Ne_down = self.config[1]
         #self.basis() #generate basis
-        return
+        self.sites = {}
+        for i,v in enumerate(self.loc):
+            if v not in self.sites.keys():
+                self.sites[v] = 2**((6*self.L**2)-i-1)
+            else:
+                self.sites[v] += 2**((6*self.L**2)-i-1)
     def basis(self):
         '''
         Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
@@ -677,6 +682,26 @@ class chain():
                         quit()
                     H[n,m] -= t
         return H
+    #@staticmethod
+    def count_occupancies(self,s):
+        '''
+        s is the configuration as a binary string. it has size 6*L**2
+        v has same length as s and holds the location of s 
+        '''
+        #s = int(s,2) #convert to integer from string
+        #for each site (0 to L**2-1) create a mask based on v
+        masks = self.sites
+        state = int(s,2)
+        occupancy = {}
+        for i in masks.keys():
+            print('--')
+            print(self.binp(masks[i],length=6*self.L**2))
+            print(self.binp(state,length=6*self.L**2))
+            print(self.binp(masks[i]&state,length=6*self.L**2))
+            print(self.countBits(masks[i] & state))
+            print('--')
+            occupancy[i] = self.countBits(masks[i] & state)
+        return occupancy
     def configuration_Hamiltonian(self):
         '''
         Returns the f*full* Hamiltonian of the configuration
@@ -684,6 +709,9 @@ class chain():
         1)Creates tensor product for hopping Hamiltonians sparsely
         2)Adds interactions and chemical potential (all are diagonal terms)
         '''
+        U = self.H_params['U']
+        V = self.H_params['V']
+        mu = self.H_params['mu']
         num_chains = len(self.chain_hamiltonians)
         total_dim = np.prod([h.shape[0] for h in self.chain_hamiltonians])
         H = csr_matrix((total_dim, total_dim), dtype=np.float64)
@@ -699,10 +727,17 @@ class chain():
         ######################################
         ##### interactions#######
         ##########################
+        basis_dec = [int(el,2) for el in self.basis]
+        for m in range(total_dim):
+            s = basis_dec[m]
+            for site in range(1,self.L**2):
+                occ_site = self.countBits(self.sites[site] & s)
+                H[m,m] -= mu*occ_site + U*occ_site**2
+        ###################
         diff = H - H.getH()
         max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
         if max_diff != 0:
-            print('Hamiltonian is not hermitia!!!!',max_diff)
+            print('Hamiltonian is not hermitian!!!!',max_diff)
         return H
     @staticmethod
     def generate_partitions(L, N):
@@ -755,7 +790,23 @@ class chain():
         else:
             s2 = s - K + P
         return s2
-
+    @staticmethod
+    def countBits(x):
+        '''Counts number of 1s in bin(n)'''
+        #From Hacker's Delight, p. 66
+        x = x - ((x >> 1) & 0x55555555)
+        x = (x & 0x33333333) + ((x >> 2) & 0x33333333)
+        x = (x + (x >> 4)) & 0x0F0F0F0F
+        x = x + (x >> 8)
+        x = x + (x >> 16)
+        return x & 0x0000003F 
+    @staticmethod
+    def binp(num, length=4):
+        '''
+        print a binary number without python 0b and appropriate number of zeros
+        regular bin(x) returns '0bbinp(x)' and the 0 and b can fuck up other stuff
+        '''
+        return format(num, '#0{}b'.format(length + 2))[2:]
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -979,7 +1030,7 @@ def test10():
     return
 def test11():
     '''
-    Time how long it takes to generate and diagonalize(Lanczos w k=<6 ) (in non-parallelized way) all configuration Hamiltonians
+    1)count number of each hilbert space dimension and time how long it takes to build and diagonalize/Lanczos => giv eestimate for total time
     '''
     timei = time.time()
     L = 2
@@ -988,23 +1039,54 @@ def test11():
     timef = time.time()
     print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
     #start diagonalizing
-    params = {'L':2,'loc':0,'H_params':{'t':1}}
+    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
+    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1}}
     Hilbert_Space = 0
     timei = time.time()
+    index = 0
+    Dims = {1:0,2:0,2**2:0,2**3:0,2**4:0,2**5:0,2**6:0,2**7:0,2**8:0,2**9:0,2**10:0,2**11:0,2**12:0}
+    Configs = {}
     for k in Equivalence_clases.keys():
+        index += 1
         c = configs[k]
         params['config'] = c
         chain_instance = chain(params)
         chain_instance.basis()
+        dim = chain_instance.dim
+        Dims[dim] += 1
+        Configs[dim] = c
+    timef = time.time()
+
+    print(f"Time elapsed to generate all subbases: {timef-timei:.3f} seconds")
+    print(Dims)
+    print(Configs)
+    for k in Configs.keys():
+        timei = time.time()
+        params['config'] = Configs[k]
+        chain_instance = chain(params)
+        chain_instance.basis()
         H = chain_instance.configuration_Hamiltonian()
         dim = chain_instance.dim
-        if dim>1:
+        if 1<dim<10:
             #print(chain_instance.dim)
             eigsh(H,k=dim-1, which='SA', tol=1e-10)
-        Hilbert_Space += Equivalence_clases[k]*dim
-    timef = time.time()
-    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
-    print(Hilbert_Space)
+        elif dim > 10:
+            eigsh(H, which='SA', tol=1e-10)
+        timef = time.time()
+        print('----'*10)
+        print('for dim',dim)
+        print(f"Time elapsed to generate & diagonalize (Lanczos): {timef-timei:.3f} seconds")
+        ###############################
+        timei = time.time()
+        params['config'] = Configs[k]
+        chain_instance = chain(params)
+        chain_instance.basis()
+        H = chain_instance.configuration_Hamiltonian()
+        dim = chain_instance.dim
+        H_dense = H.toarray()
+        np.linalg.eigh(H_dense)
+        timef = time.time()
+        print(f"Time elapsed to generate & diagonalize (full): {timef-timei:.3f} seconds")
     return
 def test12():
     '''
@@ -1020,8 +1102,10 @@ def test12():
     #start diagonalizing
     params = {'L':2,'loc':0,'H_params':{'t':1}}
     Hilbert_Space = 0
+    index = 0
     timei = time.time()
     for k in Equivalence_clases.keys():
+        index +=1
         c = configs[k]
         params['config'] = c
         chain_instance = chain(params)
@@ -1036,6 +1120,68 @@ def test12():
     timef = time.time()
     print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
     print(Hilbert_Space)
+    return
+def test13():
+    '''
+    Tests the interacting part of the hamiltonian
+    '''
+    L = 2
+    t = 1
+    U = 10
+    V = 2
+    mu = 5
+    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
+    c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
+    #c = ((1,0,0,0,0,0),(0,0,0,0,0,0))
+    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':1,'mu':mu,'U':U,'V':V}}
+    chain_instance = chain(params)
+    chain_instance.basis()
+    print(chain_instance.basis[0])
+    print('.....')
+    print(chain_instance.count_occupancies(chain_instance.basis[0]))
+    quit()
+    masks = chain_instance.count_occupancies(loc)
+    for i in masks.keys():
+        print(i,chain_instance.binp(masks[i]))
+    return
+def test14():
+    '''
+    Time how long it takes to generate and diagonalize(Lanczos w k=<6 ) (in non-parallelized way) all configuration Hamiltonians
+    '''
+    timei = time.time()
+    L = 2
+    configs = section_generator(L)
+    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    timef = time.time()
+    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
+    
+    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
+    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1}}
+    Hilbert_Space = 0
+    timei = time.time()
+    index = 0
+    for k in Equivalence_clases.keys():
+        index += 1
+        if index % 100 == 0:
+            print(index,time.time()-timei)
+        c = configs[k]
+        params['config'] = c
+        chain_instance = chain(params)
+        chain_instance.basis()
+        H = chain_instance.configuration_Hamiltonian()
+        dim = chain_instance.dim
+        if 1<dim<10:
+            #print(chain_instance.dim)
+            eigsh(H,k=dim-1, which='SA', tol=1e-10)
+        elif dim > 10:
+            eigsh(H, which='SA', tol=1e-10)
+        if dim > 500:
+            print('large hamiltonian of dimension',dim,' at index',index)
+        Hilbert_Space += Equivalence_clases[k]*dim
+    timef = time.time()
+    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
+    print(Hilbert_Space)
+
     return
 def exe1():
     print('executing....')
@@ -1054,7 +1200,7 @@ def exe1():
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11"], help="test to run")
+    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11","test12","test13"], help="test to run")
     parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
 
     args = parser.parse_args()
@@ -1081,5 +1227,9 @@ if __name__ == "__main__":
         test10()
     elif args.test == "test11":
         test11()
+    elif args.test == "test12":
+        test12()
+    elif args.test == "test13":
+        test13()
     if args.execute == "exe1":
         exe1()
