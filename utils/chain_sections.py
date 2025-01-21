@@ -613,6 +613,38 @@ class chain():
                 self.sites[v] = 2**((6*self.L**2)-i-1)
             else:
                 self.sites[v] += 2**((6*self.L**2)-i-1)
+    def basis_old(self):
+        '''
+        Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
+        
+        Args:
+            c(nested tuple):        The chain configuration
+        Returns:
+            basis(list):            A list of all states in the hilbert space spanned by the configuration
+            length_basis(int):      The size of the HIlbert space
+            Hamiltonians(list):     List of 6L**2 npcarray Hamiltonians to be combined into a full hamiltonian
+        '''
+        c = self.config
+        L = self.L
+        basis = []
+        Hamiltonians = []
+        for chain in range(int(3*L)):
+            chain_up = c[0][chain]
+            chain_down = c[1][chain]
+            basis_up = generate_partitions(L,chain_up)
+            Hamiltonians.append(self.chain_Hamiltonian(basis_up))
+            basis_down = self.generate_partitions(L,chain_down)
+            Hamiltonians.append(self.chain_Hamiltonian(basis_down))
+            if len(basis) == 0: 
+                basis = basis_up
+                basis = [old + new for old in basis for new in basis_down]
+            else:
+                basis = [old + new for old in basis for new in basis_up]
+                basis = [old + new for old in basis for new in basis_down]
+        self.basis = basis
+        self.dim = len(basis)
+        self.chain_hamiltonians = Hamiltonians
+        return 
     def basis(self):
         '''
         Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
@@ -730,9 +762,9 @@ class chain():
         basis_dec = [int(el,2) for el in self.basis]
         for m in range(total_dim):
             s = basis_dec[m]
-            for site in range(1,self.L**2):
+            for site in range(1,self.L**2+1): # keyyyyyyyy need to go all the way from 1 to L**2 not L**2 -1!!!!! BUG!!! 
                 occ_site = self.countBits(self.sites[site] & s)
-                H[m,m] -= mu*occ_site + U*occ_site**2
+                H[m,m] += -mu*occ_site + U*occ_site**2
         ###################
         diff = H - H.getH()
         max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
@@ -1183,6 +1215,69 @@ def test14():
     print(Hilbert_Space)
 
     return
+def test15():
+    '''
+    check Hamiltonian for 8x8 matrix
+    '''
+    L = 2
+    t = -1
+    U = 1
+    V = 2
+    mu = 0
+    #if binary states take form (spin1,spin2)*number of chains:
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    #if binary states take form (chain1,chain2,...,chain_3L)*number of spins:
+    #loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
+    #c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
+    c = ((1,0,1,0,0,0),(0,0,0,0,0,0))
+    c = ((0,1,1,1,0,0),(0,1,1,0,1,2))
+    #print(c)
+    #print(T(c,1,0,2))
+    #print(T(c,0,1,2))
+    #print(T(c,1,1,2))
+    #c = ((1,1,0,0,0,0),(0,0,0,0,0,0))
+    #c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
+    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':t,'mu':mu,'U':U,'V':V}}
+    chain_instance = chain(params)
+    chain_instance.basis()
+    print('basis')
+    print(chain_instance.basis)
+    H = chain_instance.configuration_Hamiltonian().toarray()
+    #e= np.linalg.eigvalsh(H)
+    #print(e)
+    #quit()
+    plt.imshow(H)
+    plt.colorbar()
+    plt.savefig('temp.png')
+    return
+def test16():
+    '''tests that all symmetry related configs to a random config have same spectrum'''
+    L = 2
+    t = 3
+    U = 10
+    V = 2
+    mu = 0
+    #if binary states take form (spin1,spin2)*number of chains:
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    c = ((1,1,2,1,0,0),(2,1,1,1,1,2))
+    Es = []
+    for n in range(2):
+        for m in range(2):
+            for m_c3 in range(3):
+                for m_spin in range(2):
+                    c_new = GroupAction(c,n,m,m_c3,m_spin,L)
+                    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':t,'mu':mu,'U':U,'V':V}}
+                    chain_instance = chain(params)
+                    chain_instance.basis()
+                    H = chain_instance.configuration_Hamiltonian().toarray()
+                    e= np.linalg.eigvalsh(H)
+                    Es.append(e)
+    diff = 0
+    for i in range(len(Es)-1):
+        diff += np.sum(np.abs(Es[i+1] - Es[i]))
+    if diff >1e-10:
+        print('uhhhhhhh')
+    return
 def exe1():
     print('executing....')
     return
@@ -1200,7 +1295,7 @@ def exe1():
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11","test12","test13"], help="test to run")
+    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11","test12","test13","test14","test15","test16"], help="test to run")
     parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
 
     args = parser.parse_args()
@@ -1231,5 +1326,11 @@ if __name__ == "__main__":
         test12()
     elif args.test == "test13":
         test13()
+    elif args.test == "test14":
+        test14()
+    elif args.test == "test15":
+        test15()
+    elif args.test == "test16":
+        test16()
     if args.execute == "exe1":
         exe1()
