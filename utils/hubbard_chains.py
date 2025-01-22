@@ -235,6 +235,32 @@ def getSpectrumFull(pars):
 ################################
 ######  HELPER FUNCTIONS #######
 ################################
+def count_ones_between_flips(binary1, binary2):
+    '''
+    Used for ***SIGN*** due to fermion anticommutators
+    '''
+    # Ensure both binaries are of the same length
+    if len(binary1) != len(binary2):
+        raise ValueError("Both binary strings must have the same length.")
+
+    # Find the XOR of the two binary strings
+    xor_result = ''.join(str(int(b1) ^ int(b2)) for b1, b2 in zip(binary1, binary2))
+
+    # Identify the positions of '1's in the XOR result
+    flip_positions = [i for i, bit in enumerate(xor_result) if bit == '1']
+
+    # Check if there are exactly two flipped positions
+    if len(flip_positions) != 2:
+        raise ValueError("There must be exactly two flipped bits.")
+
+    # Get the range between the two flipped positions
+    start, end = flip_positions
+    between_segment = binary1[start + 1:end]
+
+    # Count the number of '1's in the segment between the flipped positions
+    ones_count = between_segment.count('1')
+
+    return ones_count
 def countBits(x):
     '''Counts number of 1s in bin(n)'''
     #From Hacker's Delight, p. 66
