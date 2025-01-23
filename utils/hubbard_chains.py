@@ -65,6 +65,8 @@ def ham_symm_full(parameters):
     H_T = -t \\sum_{<ij>,s} (c^\\dagger_{i,s}c_{j,s}+h.c.) - \\mu \\sum_{i,s}n_{i,s}
     H_V = (U/2) \\sum_{i} n_{i,\\uparrow}n_{i,\\downarrow}
     -------------------------
+
+    sign(Boolean): IMplements fermionic sifn checks to ensure the anticommutation relations are implemented correctly.
     '''
     #0) read parameters
     Q_up = parameters['Electrons_up']
@@ -73,6 +75,7 @@ def ham_symm_full(parameters):
     t = parameters['hop']
     mu = parameters['mu']
     U = parameters['int']
+    sign = parameters['sign']
     mu_eff = mu+0.5*U
     mu_eff = mu
     #1) create basis
@@ -102,11 +105,17 @@ def ham_symm_full(parameters):
             psi_up_prime = hop(psi_up,i,j)
             psi_down_prime = hop(psi_down,i,j)
             if psi_up_prime!= -1:
+                sgn = +1
+                if sign == True:
+                    sgn = (-1)**count_ones_between_flips(binp(psi_up,length=L),binp(psi_up_prime,length=L))
                 nup_prime = J_up[psi_up_prime]
-                H[m,nup_prime + ndown] -= t
+                H[m,nup_prime + ndown] -= t*sgn
             if psi_down_prime!= -1:
+                sgn = +1
+                if sign == True:
+                    sgn = (-1)**count_ones_between_flips(binp(psi_down,length=L),binp(psi_down_prime,length=L))
                 ndown_prime = J_down[psi_down_prime]
-                H[m,nup + ndown_prime] -= t
+                H[m,nup + ndown_prime] -= t*sgn
     print(np.all(H==H.T))
     sparsity(H)
     return H 
@@ -237,7 +246,8 @@ def getSpectrumFull(pars):
 ################################
 def count_ones_between_flips(binary1, binary2):
     '''
-    Used for ***SIGN*** due to fermion anticommutators
+    Given two binary strings, calculate the number of 1's between their non-same elements. eg 010010010 and 000010110, we want to count the number of 1's between the 1st and -3 index:0010 so 1
+    Used to add a sign after hopping due to fermionic anticommutation relations
     '''
     # Ensure both binaries are of the same length
     if len(binary1) != len(binary2):
@@ -718,7 +728,6 @@ def feature1():
         gs = getSpectrumLanczos(pars=parameters,k=1)[0]
         plt.scatter(L,gs/L)
     plt.savefig('/mnt/users/kotssvasiliou/ED/figures/testtest.png')
-
 def feature2():
     '''
     combinatorics:
@@ -826,6 +835,32 @@ def feature5():
     configs_chains_fixed_N(N_up,N_down,L1,L2)
     return
 def feature6():
+    '''
+    Comparing the Hamiltonian with https://stanford.edu/~xunger08/Exact%20Diagonalization%20Tutorial.pdf
+    '''
+    pars = {}
+    L = 4
+    n_up = 2
+    n_down = 2
+    pars['L'] = L
+    pars['Electrons_up'] = n_up
+    pars['Electrons_down'] = n_down
+    pars['mu'] = 2
+    pars['int'] = 5
+    pars['hop'] = 1
+    pars['sign'] = True
+    H = ham_symm_full(pars)
+    print(H.shape)
+    plt.imshow(H)
+    plt.colorbar()
+    plt.savefig('sign_check_temp.png')
+    quit()
+    s1 = int('11100110010001000100',2)
+    s2 = int('01100110010001000101',2)
+    print(binp(s1,length=L),binp(s2,length=L))
+    #print(isinstance(count_ones_between_flips(binp(s1,length=L), binp(s2,length=L)),int))
+    print(count_ones_between_flips('11100110010001000100', '01100110010001000101'))
+    print(count_ones_between_flips(binp(s1,length=20), binp(s2,length=20)))
     return
 def feature7():
     return

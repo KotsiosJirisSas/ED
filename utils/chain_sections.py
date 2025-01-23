@@ -11,12 +11,25 @@ from itertools import product,combinations
 from math import comb,log10
 from collections import Counter
 '''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CODE THAT PERFORMS ED FOR AN LXL THREE-VALLEY HUBBARD SYSTEM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HOW A CALCULATION WORKS:
+
+    THE FIRST PART OF THE CODE IS TO USE THE U(1) SYMMETRIES OF THE CHAINS TO GENERATE ALL NON-EQUIVALENT CHAIN CONFIGURATIONS.
+        NON-EQUIVALENT MEANING YOU CANNOT REACH ONE FROM THE OTHER VIA A C3,TRANSLATION,TR TRANSFORMATION
+    THEN, FOR A GIVEN CONFIGURATION, WHICH WILL HAVE A HILBERT SPACE OF AT MOST (L CHOOSE L/2)**(6L) WE CREATE THE HAMILTONIAN BY CREATING THE TENSOR PRODUCT OF THE HAMILTONIANS FOR THE INDIVIDUAL CHAINS
+        EACH CHAIN (SPINLESS) HAMILTONIAN WILL HAVE A SMALL SIZE, AT MOST, (L CHOOSE L/2) SO 2X2 FOR L=2 AND 3X3 FOR L=3, SO ESSENTIALLY OUR FULL HAMILTONIAN IS A BLOCK HAMILTONIAN (ADD STATS ABOUT SPARSITY).
+        THIS IS SORTED BY THE 'CHAINS' CLASS THAT IS INITIALIZED BY A SINGLE CONFIGURATION.
+    THEN WHAT ONE NEEDS TO SAVE IS THE EIGENSTATES/EIGENENERGIES FOR EACH CONFIGURATION. FOR A THERMAL AVERAGE CALCULATION THEN ONE COMBINES THE DATA FROM ALL SECTORS
+        THIS IS ORGANIZED, ALONG WITH SOME OBSERVABLES IN THE LAST PART OF THE CODE
+----------------------------------------------------------------------------------------------------------------
 Code that can generate all symmetry-inequivalent configurations of chain occupations.
 These unique configurations can then be fed to a different function to create their Hamiltonian and diagonalize.
 For 2x2 system, there are ~ 5*1e5 different configurations, but only ~ 2*1e4 unique ones.
 For 3x3 system, there are ~ 7*1e10 different configurations, but ~ 1*1e9 unique ones.
 
-The optimal reduction is by the order of the symmetry group which i think is 6L**2 (3 from C3, 2 from spin-inversion, L**2 from translations)
+The optimal reduction is by the order of the symmetry group which i think is 6L**2 (3 from C3, 2 from spin-inversion (time-reversal), L**2 from translations)
 
 
 |   |   |   |               |   |   |   |               |   |   |   |       
@@ -58,6 +71,12 @@ These should scale like ~ (1+L)**(6*L)/(6L**2)
    To do:
             1) Figure out how to consistencly define the chains for a L1 x L2 system with L1 != L2
             2) Figure out how to dynamically generate the configurations for systems larger than 2x2.
+23 Jan Log:
+   Added a sign function to take care of fermion sign, although that only applied to chains with more than two electrons and that allow hopping. So the smallest such case is for L=3 chain with 2 electrons.
+   To do:   
+            0) Add n.n. repulsion V
+            1) Not important for now<------Figure out how to consistencly define the chains for a L1 x L2 system with L1 != L2
+            2) For small temperatures, projecting Hilbert space to N_electrons = \\nu *(L**2) \pm 1 should be enough<--------Figure out how to dynamically generate the configurations for systems larger than 2x2.
 '''
 def section_generator(L):
     '''
@@ -99,6 +118,7 @@ def section_generator_partial(L, n):
     """
     Generates the first n configurations for a given L, saves them temporarily to a file,
     and returns them as a list of tuples. The temporary file is deleted after use.
+    This may be useful for systems larger than L=2 when number of configurations is larger than that allowed by RAM to hold it at the same time
 
     Args:
         L (int):        The system size (number of chains per valley and sites per chain).
@@ -500,17 +520,6 @@ def generate_partitions(L, N):
 
     return partitions
 
-def hubbard_cost():
-    '''
-    calculates the hubbard cost of a binary string based on a vector of its locations
-    we have a string 
-    eg 
-    s = 0011010101010
-    of size 6L**2. each binary position is associated with a position on the lattice, eg 
-    v = 123413241423123413241423 (for a 2x2 system)
-    based on this v, parse through s and if there are eg n>3 electrons at site i (of different spins/valleys) add a cost U*n.
-    '''
-    return
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -598,15 +607,19 @@ Essentially, for each chain the input will only be
     3) Its location on the grid.
 The relevant properties of the chain will then be its hamiltonian as well as its lattice location.
 '''
-class chain():
+class chains():
+    '''
+    An instance of this class represents a Hamiltonian associated with a particular configuration of chains.
+    It contains the HIlbert space and Hamiltonian of individual chains, as well as the total hilbert space and Hamiltonian, plus its eigenstuff
+    '''
     def __init__(self,params):
         self.config = params['config']
         self.H_params = params['H_params']
         self.L = params['L']
         self.loc = params['loc']
-        #self.Ne_up = self.config[0]
-        #self.Ne_down = self.config[1]
-        #self.basis() #generate basis
+        self.sign = params['sign']# boolean T/F
+        self.basis()#generates basis
+        self.diag_params = params['diag_params']
         self.sites = {}
         for i,v in enumerate(self.loc):
             if v not in self.sites.keys():
@@ -616,7 +629,7 @@ class chain():
     def basis_old(self):
         '''
         Generates the basis in terms of binaries. An LxL system will have a basis with 3L*2*L=6L**2 sites. Each site is 0 or 1 so full hilbert space is ofcourse 2**(6L**2)=64**L**2
-        
+        The ordering of the basis is: chain_1_up,chain_1_down,chain_2_up,chain_2_down,......,chain_3L_up,chain_3L_down
         Args:
             c(nested tuple):        The chain configuration
         Returns:
@@ -712,7 +725,12 @@ class chain():
                     except ValueError:
                         print('Index not found...quitting!')
                         quit()
-                    H[n,m] -= t
+                    sgn = 1
+                    if self.sign == True:
+                        sgn = self.fermion_sgn(self.binp(s,length=L_chain),self.binp(s2,length=L_chain))
+                        if sgn == -1 and L_chain == 2:
+                            print('negative sign? Shouldnt happen for L=2')
+                    H[n,m] -= t*sgn
         return H
     #@staticmethod
     def count_occupancies(self,s):
@@ -725,6 +743,7 @@ class chain():
         masks = self.sites
         state = int(s,2)
         occupancy = {}
+        occupancy_tot = 0
         for i in masks.keys():
             print('--')
             print(self.binp(masks[i],length=6*self.L**2))
@@ -733,10 +752,11 @@ class chain():
             print(self.countBits(masks[i] & state))
             print('--')
             occupancy[i] = self.countBits(masks[i] & state)
-        return occupancy
+            occupancy_tot += occupancy[i]
+        return occupancy,occupancy_tot
     def configuration_Hamiltonian(self):
         '''
-        Returns the f*full* Hamiltonian of the configuration
+        Returns the *full* Hamiltonian of the configuration
         Steps:
         1)Creates tensor product for hopping Hamiltonians sparsely
         2)Adds interactions and chemical potential (all are diagonal terms)
@@ -771,6 +791,38 @@ class chain():
         if max_diff != 0:
             print('Hamiltonian is not hermitian!!!!',max_diff)
         return H
+    
+    def diagonalization(self):
+        '''
+        Sorts out the diagonalization of this configuration. The output contains the full information necessary to calculate thermodynamic properties.
+
+        Returns:
+            diag_states(dict):      A dictionary with keys: 'params':           Holds minimal system information such as configuration and weight of the configuration
+                                                            'eig_energies':     A 1xM array of dtype=float containing the eigenstates
+                                                            'occupations':      A 1xM array of dtype=int containing the occupation number of the eigenstates
+                                                            'eig_states':       A MxM array of dtype=complex containing the eigenstates. Its the main memory bottleneck by far
+        '''
+        #lanczos or full?
+        H = self.configuration_Hamiltonian()
+
+        if self.diag_params['mode'] == 'full':
+            H_dense = H.toarray()
+            e,v = np.linalg.eigh(H_dense)
+            
+        elif self.diag_params['mode'] == 'Lanczos':
+            k = self.diag_params['k']
+            dim = self.dim
+            if 1<dim<10:
+                k = min(dim-1,k)
+            e,v = eigsh(H,k=k, which='SA', tol=1e-10)
+        else:
+            print('no mode added')
+            quit()
+        diag_states = {}
+        diag_states['configuration'] = self.config
+        diag_states['energies'] = e
+        diag_states['states'] = v
+        return diag_states
     @staticmethod
     def generate_partitions(L, N):
         """
@@ -839,15 +891,37 @@ class chain():
         regular bin(x) returns '0bbinp(x)' and the 0 and b can fuck up other stuff
         '''
         return format(num, '#0{}b'.format(length + 2))[2:]
-####################################################################################################################################
-####################################################################################################################################
-####################################################################################################################################
-####################################################################################################################################
-##################################################### Diagonalization ##############################################################
-####################################################################################################################################
-####################################################################################################################################
-####################################################################################################################################
-####################################################################################################################################
+    @staticmethod
+    def fermion_sgn(binary1,binary2):
+        '''
+        Modified from 'count_ones_between_flips' function in hubbard_chains.py
+        --------------------
+        Takes two binary strings that are meant to be related by a flip, ie they only differ in two sites, s1=xxx0xxx1xxx and s2=xxx1xxx0xxx.
+        It then counts the number of 1's that separate these flipped sites, and outputs (-1)**count
+        This accounts for the anticommutaative relations of the fermions
+        
+        Input:
+            binary1(str):       A binary string representing a spinless fermion state on a chain
+            binaryw(str):       A binary string representing a spinless fermion state on a chain
+        Return:
+            sgn(int):           The sign relating these two states
+        '''
+        # Ensure both binaries are of the same length
+        if len(binary1) != len(binary2):
+            raise ValueError("Both binary strings must have the same length.")
+        # Find the XOR of the two binary strings
+        xor_result = ''.join(str(int(b1) ^ int(b2)) for b1, b2 in zip(binary1, binary2))
+        # Identify the positions of '1's in the XOR result
+        flip_positions = [i for i, bit in enumerate(xor_result) if bit == '1']
+        # Check if there are exactly two flipped positions
+        if len(flip_positions) != 2:
+            raise ValueError("There must be exactly two flipped bits.")
+        # Get the range between the two flipped positions
+        start, end = flip_positions
+        between_segment = binary1[start + 1:end]
+        # Count the number of '1's in the segment between the flipped positions
+        ones_count = between_segment.count('1')
+        return (-1)**ones_count
 
 ####################################################################################################################################
 ####################################################################################################################################
@@ -914,9 +988,9 @@ def test4():
     '''
     Tests the operators and their commutator relationships. Either with full configs or a partial construction (see test5)
     '''
-    L = 3
+    L = 2
     n = 100
-    partial = True
+    partial = False
     if partial == True:
         configs = section_generator_partial(L,n)
     else:
@@ -929,8 +1003,6 @@ def test4():
     print('='*20,'Testing','='*21)
     print('='*50)
     for i,config in enumerate(configs):
-        if i< 20:
-            print(config)
         config_temp = config
         config_temp = GroupAction(config_temp,n=0,m=0,m_c3=2,m_spin=0,L=L)
         config_temp = GroupAction(config_temp,n=1,m=0,m_c3=1,m_spin=0,L=L)
@@ -1018,18 +1090,18 @@ def test7():
     Tests the Equivalent sector generator
     Specifically tests that the *sum_total* of the reduced configs equals the number of total configs
     '''
+    print('*'*100)
     L = 2
     Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
-    print(Tot_number)
-    print(Reduced_number)
-    print(Tot_number/Reduced_number,'vs optimal',3*L*L*2)
     sum_reduced = 0
     sum_total = 0
     for k in Equivalence_clases.keys():
-        sum_reduced +=1
-        sum_total += Equivalence_clases[k][1]
-    print(sum_reduced)
-    print(sum_total)
+        sum_reduced += 1
+        sum_total += Equivalence_clases[k]
+    print('do reduced sectors agree?',sum_reduced,Reduced_number)
+    print('do total sectors agree?',sum_total,Tot_number)
+    print('Gain ',Tot_number/Reduced_number,' vs optimal gain:',3*L*L*2)
+    print('*'*100)
     return
 def test8():
     '''
@@ -1062,7 +1134,9 @@ def test10():
     return
 def test11():
     '''
-    1)count number of each hilbert space dimension and time how long it takes to build and diagonalize/Lanczos => giv eestimate for total time
+    1)count number of each hilbert space dimension 
+    2)time how long it takes to build and diagonalize/Lanczos
+    3) Give estimate for total time + give estimate for total memory
     '''
     timei = time.time()
     L = 2
@@ -1072,7 +1146,7 @@ def test11():
     print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
     #start diagonalizing
     loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
-    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1}}
+    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1},'sign':True}
     Hilbert_Space = 0
     timei = time.time()
     index = 0
@@ -1092,6 +1166,8 @@ def test11():
     print(f"Time elapsed to generate all subbases: {timef-timei:.3f} seconds")
     print(Dims)
     print(Configs)
+    TimeLanczos = 0
+    TimeFull = 0
     for k in Configs.keys():
         timei = time.time()
         params['config'] = Configs[k]
@@ -1107,7 +1183,8 @@ def test11():
         timef = time.time()
         print('----'*10)
         print('for dim',dim)
-        print(f"Time elapsed to generate & diagonalize (Lanczos): {timef-timei:.3f} seconds")
+        TimeLanczos += Dims[k]*(timef-timei)
+        print(f"Time elapsed to generate & diagonalize (Lanczos): {Dims[k]*(timef-timei):.3f} seconds")
         ###############################
         timei = time.time()
         params['config'] = Configs[k]
@@ -1118,7 +1195,23 @@ def test11():
         H_dense = H.toarray()
         np.linalg.eigh(H_dense)
         timef = time.time()
-        print(f"Time elapsed to generate & diagonalize (full): {timef-timei:.3f} seconds")
+        TimeFull += Dims[k]*(timef-timei)
+        print(f"Time elapsed to generate & diagonalize (full): {Dims[k]*(timef-timei):.3f} seconds")
+    print('-'*100)
+    print('TOTAL TIME LANCZOS ~'+str(TimeLanczos/60)+' minutes')
+    print('-'*100)
+    print('TOTAL TIME FULL SPEC ~'+str(TimeFull/60)+' minutes')
+    print('-'*100)
+    print('MEMORY STORAGE ESTIMATE:')
+    print('-'*100)
+    total_memory_bytes = 0
+    BYTES_PER_REAL = 8
+    BYTES_PER_COMPLEX = 16
+    for size, count in Dims.items():
+        eigenvalues_memory = size * BYTES_PER_REAL  # Memory for eigenvalues
+        eigenvectors_memory = size**2 * BYTES_PER_COMPLEX  # Memory for eigenvectors
+        total_memory_bytes += count * (eigenvalues_memory + eigenvectors_memory)
+    print('~'+str(total_memory_bytes/1024**3)+' GBs')
     return
 def test12():
     '''
@@ -1256,30 +1349,45 @@ def test16():
     t = 3
     U = 10
     V = 2
-    mu = 0
+    mu = 1
     #if binary states take form (spin1,spin2)*number of chains:
     loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
-    c = ((1,1,2,1,0,0),(2,1,1,1,1,2))
+    c = ((1,1,2,1,0,0),(2,1,1,1,1,2)) #random configuration.
     Es = []
     for n in range(2):
         for m in range(2):
             for m_c3 in range(3):
                 for m_spin in range(2):
                     c_new = GroupAction(c,n,m,m_c3,m_spin,L)
-                    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':t,'mu':mu,'U':U,'V':V}}
-                    chain_instance = chain(params)
-                    chain_instance.basis()
-                    H = chain_instance.configuration_Hamiltonian().toarray()
-                    e= np.linalg.eigvalsh(H)
-                    Es.append(e)
+                    params = {'L':L,'loc':loc,'config':c,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+                    chain_instance = chains(params)
+                    diag_states = chain_instance.diagonalization()
+                    Es.append(diag_states['energies'])
+                    #H = chain_instance.configuration_Hamiltonian().toarray()
+                    #e= np.linalg.eigvalsh(H)
+                    #Es.append(e)
     diff = 0
     for i in range(len(Es)-1):
         diff += np.sum(np.abs(Es[i+1] - Es[i]))
     if diff >1e-10:
         print('uhhhhhhh')
+    print('Delta E = ',str(diff))
     return
 def exe1():
+    '''
+    This starts by doing some tests and then implements ED:
+    '''
     print('executing....')
+    print('1) Testing commutator relations:')
+    test4()
+    print('2)Testing the state to index mapping')
+    test6()
+    print('3)Testing the section reduction')
+    test7()
+    print('4)Tesing that symmetry-related configurations have same spectrum')
+    test16()
+    print('end of tests')
+    print('now:Diagonalizing')
     return
 ####################################################################################################################################
 ####################################################################################################################################
