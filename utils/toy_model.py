@@ -52,6 +52,30 @@ def N_avg(basis,beta,Es,Occupancy_s):
     for i,s in enumerate(basis):
         navg += Occupancy_s[i]*np.exp(-beta*Es[i]) 
     return navg
+def N_sq_avg(basis,beta,Es,Occupancy_s):
+    '''
+    calculates avg occupation number
+    '''
+    nsqavg = 0
+    for i,s in enumerate(basis):
+        nsqavg += (Occupancy_s[i]**2)*np.exp(-beta*Es[i]) 
+    return nsqavg
+def E_avg(basis,beta,Es):
+    '''
+    calculates avg energy Tr(Hexp(-\\betaH))
+    '''
+    eavg = 0
+    for i,s in enumerate(basis):
+        eavg += Es[i]*np.exp(-beta*Es[i]) 
+    return eavg
+def E_sq_avg(basis,beta,Es):
+    '''
+    calculates avg energy Tr(H**2exp(-\\betaH))
+    '''
+    esqavg = 0
+    for i,s in enumerate(basis):
+        esqavg += (Es[i]**2)*np.exp(-beta*Es[i]) 
+    return esqavg
 def countBits(x):
     '''Counts number of 1s in bin(n)'''
     #From Hacker's Delight, p. 66
@@ -101,12 +125,73 @@ def count_ones_between_flips(binary1, binary2):
     return ones_count
 
 if __name__ == "__main__":
-	es = [((0.,1.),(1.,2.,3.,4.,5.)),((0.,2.),(2.,3.,4.,5.,6.)),((1.,1.),(3.,4.,5.)),((1.,2.),(5.,6.))]
-	plot_ES(es)
-	quit()
-	'''
-    working out the boltzman weight stored in states away from filling dictated by \mu
     '''
+    doing static susceptibilities
+    '''
+    Occ = 12 #S=11/2
+    Sites = 1 #number of sites
+    U = 1
+    mu = 3 #leads t <N> =3
+    betas = np.array(list(np.linspace(0.05,1,num=50))+list(np.linspace(1,20,num=50)))
+    Energies = np.zeros(len(betas))
+    Energies_sq = np.zeros(len(betas))
+    Numbers = np.zeros(len(betas))
+    Numbers_sq = np.zeros(len(betas))
+    Basis = basis(Occ,Sites)
+    for i,beta in enumerate(betas):
+        Es,Occupancy_s = H(Basis,mu,U,Occ,Sites)
+        Z = PartFunc(Basis,beta,Es)
+        Eavgs = E_avg(Basis,beta,Es)
+        E_sq_avgs = E_sq_avg(Basis,beta,Es)
+        Navgs = N_avg(Basis,beta,Es,Occupancy_s)
+        N_sq_avgs = N_sq_avg(Basis,beta,Es,Occupancy_s)
+        Energies[i] = Eavgs/Z
+        Energies_sq[i] = E_sq_avgs/Z
+        Numbers[i] = Navgs/Z
+        Numbers_sq[i] = N_sq_avgs/Z
+    plt.plot(1/betas,(betas**2) * (Energies_sq - Energies**2) ,c='b')
+    #plt.plot(np.log(1/betas),(betas**2) * (Numbers_sq - Numbers**2) ,c='r')
+    plt.xlabel('$1/\\beta$')
+    #plt.xticks([1,3,5,7,9])
+    #plt.ylabel('$\langle N \\rangle$')
+    #plt.legend()
+    plt.title('$\\mu=3$')
+    plt.savefig('chi_charge.png',dpi=800)
+
+
+    '''
+    doing plot of energy vs temperature.
+    For T--->0, nergy = ground state nergy as thermal fluctuations get killed off
+    '''
+
+    '''
+    Occ = 12 #S=11/2
+    Sites = 1 #number of sites
+    U = 1
+    mu = 3 #leads t <N> =3
+    betas = np.linspace(5,20,num=100)
+    Energies = np.zeros(len(betas))
+    Numbers = np.zeros(len(betas))
+    Basis = basis(Occ,Sites)
+    for i,beta in enumerate(betas):
+        Es,Occupancy_s = H(Basis,mu,U,Occ,Sites)
+        Z = PartFunc(Basis,beta,Es)
+        Eavgs = E_avg(Basis,beta,Es)
+        Navgs = N_avg(Basis,beta,Es,Occupancy_s)
+        Energies[i] = Eavgs/Z
+        Numbers[i] = Navgs/Z
+    #plt.plot(1/betas,Energies,c='b')
+    plt.plot(1/betas,Numbers,c='r')
+    plt.xlabel('$1/\\beta$')
+    #plt.xticks([1,3,5,7,9])
+    plt.ylabel('$\langle N \\rangle$')
+    #plt.legend()
+    plt.title('$\\mu=3$')
+    plt.savefig('N_vs_T.png',dpi=800)
+    '''
+'''
+    working out the boltzman weight stored in states away from filling dictated by \mu
+'''
 
 '''
     Occ = 12
@@ -137,8 +222,7 @@ if __name__ == "__main__":
     plt.xlabel('$\\beta U$')
     plt.legend()
     plt.savefig('projected_boltzmann_weight.png',dpi=800)
-    '''
-
+'''
 
 
 '''
@@ -194,4 +278,3 @@ if __name__ == "__main__":
     plt.legend()
     plt.savefig('test_toy.png',dpi=800)
     '''
-

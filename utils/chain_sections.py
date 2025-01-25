@@ -782,9 +782,13 @@ class chains():
         basis_dec = [int(el,2) for el in self.basis]
         for m in range(total_dim):
             s = basis_dec[m]
+            occupations = []
             for site in range(1,self.L**2+1): # keyyyyyyyy need to go all the way from 1 to L**2 not L**2 -1!!!!! BUG!!! 
                 occ_site = self.countBits(self.sites[site] & s)
-                H[m,m] += -mu*occ_site + U*occ_site**2
+                occupations.append(occ_site)
+                H[m,m] += -mu*occ_site + U*occ_site**2 
+            #n.n. electron repulsion
+            H[m,m] += V*self.nn_repulsion(self.L,occupations)
         ###################
         diff = H - H.getH()
         max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
@@ -885,6 +889,20 @@ class chains():
         x = x + (x >> 16)
         return x & 0x0000003F 
     @staticmethod
+    def nn_repulsion(length,occupations):
+        '''
+        calculates n.n. repulsion for L=2 where all sites are nn with all others
+        '''
+        if length != 2:
+            print('not implemented')
+            quit()
+        count = 0
+        for i,occ1 in enumerate(occupations):
+            for j,occ2 in enumerate(occupations):
+                if i < j:
+                    count += occ1*occ2
+        return count
+    @staticmethod
     def binp(num, length=4):
         '''
         print a binary number without python 0b and appropriate number of zeros
@@ -922,6 +940,41 @@ class chains():
         # Count the number of '1's in the segment between the flipped positions
         ones_count = between_segment.count('1')
         return (-1)**ones_count
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################### STAT MECH ##################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+class correlations():
+    '''
+    A class that holds information about correlations like the partition function etc etc
+    The main things it has is the basis from ED and the energies
+    '''
+    def __init__(self,input_dict):
+        '''
+        input dict will have structure {'config':{'multiplicity:int,'energies,:1xM array,'basis':MxM array}}
+        '''
+        self.basis = {}
+        self.basis_projected = {} # call a function that handles projection
+        return
+    def partition_function(self,beta):
+        '''
+        calculates partion function
+        '''
+        Z = 0
+        energies = []
+        for i,s in enumerate(self.basis):
+            Z += np.exp(-beta*energies[i]) 
+        return Z
+    def H_avg(self,beta):
+        '''
+        
+        '''
+        return
 
 ####################################################################################################################################
 ####################################################################################################################################
@@ -1313,9 +1366,9 @@ def test15():
     check Hamiltonian for 8x8 matrix
     '''
     L = 2
-    t = -1
-    U = 1
-    V = 2
+    t = 2
+    U = 2*0
+    V = 1
     mu = 0
     #if binary states take form (spin1,spin2)*number of chains:
     loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
@@ -1324,15 +1377,15 @@ def test15():
     #c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
     c = ((1,0,1,0,0,0),(0,0,0,0,0,0))
     c = ((0,1,1,1,0,0),(0,1,1,0,1,2))
+    c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
     #print(c)
     #print(T(c,1,0,2))
     #print(T(c,0,1,2))
     #print(T(c,1,1,2))
     #c = ((1,1,0,0,0,0),(0,0,0,0,0,0))
     #c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
-    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':t,'mu':mu,'U':U,'V':V}}
-    chain_instance = chain(params)
-    chain_instance.basis()
+    params = {'L':L,'loc':loc,'config':c,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    chain_instance = chains(params)
     print('basis')
     print(chain_instance.basis)
     H = chain_instance.configuration_Hamiltonian().toarray()
@@ -1388,6 +1441,7 @@ def exe1():
     test16()
     print('end of tests')
     print('now:Diagonalizing')
+    
     return
 ####################################################################################################################################
 ####################################################################################################################################
