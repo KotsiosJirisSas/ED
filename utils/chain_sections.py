@@ -10,6 +10,8 @@ import argparse
 from itertools import product,combinations
 from math import comb,log10
 from collections import Counter
+from matplotlib.colors import ListedColormap
+from matplotlib.colors import BoundaryNorm
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CODE THAT PERFORMS ED FOR AN LXL THREE-VALLEY HUBBARD SYSTEM
@@ -894,8 +896,9 @@ class chains():
         calculates n.n. repulsion for L=2 where all sites are nn with all others
         '''
         if length != 2:
-            print('not implemented')
-            quit()
+            print('n.n. interaction not implemented for L >2')
+            return 0
+            #quit()
         count = 0
         for i,occ1 in enumerate(occupations):
             for j,occ2 in enumerate(occupations):
@@ -1365,19 +1368,23 @@ def test15():
     '''
     check Hamiltonian for 8x8 matrix
     '''
+    #L = 3
     L = 2
     t = 2
-    U = 2*0
-    V = 1
+    U = 0.25
+    V = 0.1
     mu = 0
     #if binary states take form (spin1,spin2)*number of chains:
-    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3] # L= 2
+    #loc = [1,4,7,1,4,7,2,5,8,2,5,8,3,6,9,2,6,9,1,2,3,1,2,3,4,5,6,4,5,6,7,8,9,7,8,9,2,4,9,2,4,9,3,5,7,3,5,7,6,8,1,6,8,1] #L = 3
     #if binary states take form (chain1,chain2,...,chain_3L)*number of spins:
     #loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
     #c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
     c = ((1,0,1,0,0,0),(0,0,0,0,0,0))
     c = ((0,1,1,1,0,0),(0,1,1,0,1,2))
     c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
+    #c = ((1,0,0,0,0,0),(1,0,0,0,0,0))
+    #c = ((2,0,0,0,3,1,0,0,0),(0,0,2,0,0,0,0,0,0))#L = 3
     #print(c)
     #print(T(c,1,0,2))
     #print(T(c,0,1,2))
@@ -1392,9 +1399,22 @@ def test15():
     #e= np.linalg.eigvalsh(H)
     #print(e)
     #quit()
+    # Define the colormap: white for 0, and distinct colors for other values
+    colors = ['red','white', 'blue', 'green']  # Customize as needed
+    cmap = ListedColormap(colors)
+    bounds = [-t, 0, 3*U+3*V, 5*U+2*V]  # Boundaries for the colormap
+
+    # Create a normalization for the colormap
+    norm = BoundaryNorm(bounds, cmap.N)
+
+    # Plot the Hamiltonian matrix
+    plt.figure(figsize=(8, 8))
     plt.imshow(H)
-    plt.colorbar()
-    plt.savefig('temp.png')
+    #plt.imshow(H, cmap=cmap, norm=norm)
+    colorbar = plt.colorbar(ticks=[-t, 0, 3*U+3*V, 5*U+2*V])
+    colorbar.ax.set_yticklabels(["-t", "0", "3U+3V", "5U+2V"],fontsize=12)
+    plt.title('$H_{mn}$ for config $101001000000$')
+    plt.savefig('Hamiltonian.png')
     return
 def test16():
     '''tests that all symmetry related configs to a random config have same spectrum'''

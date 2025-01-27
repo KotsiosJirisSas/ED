@@ -128,11 +128,12 @@ if __name__ == "__main__":
     '''
     doing static susceptibilities
     '''
-    Occ = 12 #S=11/2
-    Sites = 1 #number of sites
-    U = 1
-    mu = 3 #leads t <N> =3
-    betas = np.array(list(np.linspace(0.05,1,num=50))+list(np.linspace(1,20,num=50)))
+    Occ = 7 #S=11/2
+    Sites = 2 #number of sites
+    U = 5
+    mu = 3 
+    betas = np.linspace(1,20,num=50)#leads t <N> =3
+    #betas = #np.array(list(np.linspace(0.01,1,num=50))+list(np.linspace(1,20,num=50)))
     Energies = np.zeros(len(betas))
     Energies_sq = np.zeros(len(betas))
     Numbers = np.zeros(len(betas))
@@ -149,9 +150,9 @@ if __name__ == "__main__":
         Energies_sq[i] = E_sq_avgs/Z
         Numbers[i] = Navgs/Z
         Numbers_sq[i] = N_sq_avgs/Z
-    plt.plot(1/betas,(betas**2) * (Energies_sq - Energies**2) ,c='b')
+    plt.plot(1/betas,(betas**2) * (Energies_sq - Energies**2) ,'.',c='b')
     #plt.plot(np.log(1/betas),(betas**2) * (Numbers_sq - Numbers**2) ,c='r')
-    plt.xlabel('$1/\\beta$')
+    plt.xlabel('$\log{(1/\\beta)}$')
     #plt.xticks([1,3,5,7,9])
     #plt.ylabel('$\langle N \\rangle$')
     #plt.legend()
