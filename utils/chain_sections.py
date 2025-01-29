@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as spst
@@ -12,6 +13,13 @@ from math import comb,log10
 from collections import Counter
 from matplotlib.colors import ListedColormap
 from matplotlib.colors import BoundaryNorm
+import random
+from scipy.special import logsumexp
+from scipy.sparse import SparseEfficiencyWarning
+import warnings
+
+warnings.simplefilter("ignore", SparseEfficiencyWarning) #supress warning???
+
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CODE THAT PERFORMS ED FOR AN LXL THREE-VALLEY HUBBARD SYSTEM
@@ -37,7 +45,7 @@ The optimal reduction is by the order of the symmetry group which i think is 6L*
 |   |   |   |               |   |   |   |               |   |   |   |       
 |   |   |   |               |   |   |   |               |   |   |   | 
 |   |   |   |               |   |   |   |               |   |   |   | 
-|   |   |   |               |   |   |   |               |   |   |   | 
+|   |   |   |               |   |   |   |               |   |   |   |  x ....
 |   |   |   |       x       |   |   |   |       x       |   |   |   | 
 |   |   |   |               |   |   |   |               |   |   |   | 
 |   |   |   |               |   |   |   |               |   |   |   | 
@@ -167,6 +175,13 @@ class chain_configs():
             self.Nchains = 2*self.L
             self.Gs = ['TR','T1','T2','C2']
             self.rotate = self.C2
+        self.Nconfigs = (self.L+1)**(2*self.Nchains)
+
+        if self.partial == True and 'N_c' in params:
+            self.N_c = params['N_c'] # how many configs to generate
+        else:
+            self.N_c = self.Nconfigs
+        self.section_generator(n=self.N_c) # generates the configurations
         return
     
     #####
@@ -192,8 +207,6 @@ class chain_configs():
                 This should involve the c2i function. Start w/ config c and enumerate all symmetry related ones. Then somehow add a 'mask' so that these are not generated later on.
             2)ALLOW A SMARTER WAY TO GENERATE STATES
         """
-        if self.partial == False:
-            n = (self.L+1)**(self.Nchains) # if partial flag is off, generate *all* configs
         # Temporary file to store configurations
         temp_file = "configurations_temp.txt"
 
@@ -225,7 +238,8 @@ class chain_configs():
         # Step 3: Delete the temporary file
         os.remove(temp_file)
 
-        return configurations
+        self.configurations = configurations
+        return 
 
     def T(self,s,n,m):
         '''
@@ -381,7 +395,7 @@ class chain_configs():
         L = self.L
 
         s_temp = s
-        s_temp = self.T(s_temp,n,m,L)
+        s_temp = self.T(s_temp,n,m)
         for x in range(m_rot):
             s_temp = self.rotate(s_temp)
         for y in range(m_spin):
@@ -412,6 +426,77 @@ class chain_configs():
         total_index = up_index * (base ** (self.Nchains)) + down_index
         return total_index
 
+    def configuration_reduction(self):
+        '''
+        Generates all the states, then goes throught them, applies all the group elements and bunches the configs together in equivalence classes: if \exists g \in G: g(c)=c' => c ~c'
+        Then it calls the reweighing function that turns equivalence classes into two numbers; Their representative and their order(weight)
+        Args:
+            dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the order of the group
+
+        Returns:
+            symm_configs(dict):     Dictionaty of the equivalence classes. Keys are the representative configurations and values their weights.
+            Reduced_number(int):    Number of configurations after this reduction
+        '''
+        #only works now with full configuration creation
+        if not hasattr(self,'configurations'):
+            print('GENERATING CONFIGURATIONS')
+            self.section_generator()
+        L = self.L
+        Equivalence_classes = {}
+        mask = [True]*self.Nconfigs # checks if this state has been 'met' before
+        for i,c in enumerate(self.configurations):
+            if mask[i] == False:
+                continue
+            #Equivalence_classes[i] = []                                                                                                #changes 29 Jan; BUG? What should keys of new dict be....
+            Equivalence_classes[c] = []
+            #######
+            if self.geometry == 'triangular':
+                M_rot = 3
+            else:
+                M_rot = 2
+            for n in range(2):
+                for m in range(2):
+                    for m_rot in range(M_rot):
+                            for m_spin in range(2):
+                                c_new = self.GroupAction(c,n,m,m_rot,m_spin)
+                                i_new = self.c2i(c_new)
+                                #Equivalence_classes[i].append(i_new)                                                                       #changes 29 Jan; BUG?
+                                Equivalence_classes[c].append(i_new)
+                                mask[i_new] = False
+        self.symm_configs = self.reweight(Equivalence_classes)
+        Reduced_number = len(self.symm_configs)
+        print('Total Number of configurations:',self.Nconfigs)
+        print('Reduced Number of configurations:',Reduced_number)
+        print('Gain:',self.Nconfigs/Reduced_number)
+        return Reduced_number
+
+    @staticmethod
+    def reweight(dict):
+        '''
+        Takes the symmetry-reduced configurations and 'reweights' them. Ie for eg [x_1]:(x_1,x_2,x_3) in the same equivalence class, it turns it into [x_1]:(3) 
+        Meaning for calculations, x_1 cnofiguration should count 3 times as it really represents three states.
+
+        Args:
+            dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the ordger of the group
+
+        Returns:
+            dict_out(dictionary):   Dictionary of the form (key,value):(x_1,w_1) with w_1 the weight corresponding to configuration x_1
+        
+        '''
+        dict_out = {}
+        for k in dict.keys():
+            lst = dict[k]
+            element_counts = Counter(lst)
+            unique_elements = list(element_counts.keys())
+            multiplicities = list(element_counts.values())
+            if not multiplicities.count(multiplicities[0]) == len(multiplicities):
+                #checks that all items in an equivalence class appear an equal amount of times: 1,2,3,4,6,8,12,24
+                print('uhhhhhhhhhhhhhhhhh')
+                quit()
+            weight = len(unique_elements)
+            #dict_out[k] = (unique_elements,weight) # this returns something that holds info of all equivalent states
+            dict_out[k] = weight # this only holds info of the *representative* configuration through the dict key
+        return dict_out
 
     def hilbertspacedim(self,c):
         '''
@@ -475,342 +560,6 @@ class chain_configs():
         return (nu,Sz_tot,N_fl,Sz_fl)
 
  #####################################   
-
-############################
-###### implement into class##
-###remainder: section_reduction,reweight
-#############################
-def section_generator(L):
-    '''
-    Generates all configurations for a system of size L
-    Args:
-        L(int):         The number of chains in the system (per flavor)
-        L(int):         The sites in each chain
-        (Equal in this case. Need to generalize)
-    Returns:
-        All possible configurations
-        A given configuration(section) has the form (n_1,n_2,.....,n_3L)
-    
-    
-    ###########################################################################################################################################################
-    Convention: First L numbers are for the first valley parallel to a1, [L->2L] are second valley parallel to a2, [2L->3L] are third valley parallel to a3.
-    
-    L=1: #~64      time = 0s
-    L=2: #~5*1e5   time = 0.06s
-    L=3: #~7*1e10  time ~ 1.5 hours process is killed, maybe too much memory. would require about 24TB of memory woOoOah
-
-    memory= # x 4 bytes per integer x 2*3*L integers for a configuration. + overhead for tuples (overhead is 3x memory to store a tuple so its bad but its order 1 bad)
-    L=1: ~1e-6 GB
-    L=2: ~1e-2 GB
-    L=3: ~1e+4 GB
-    L=4: ~1e+10 GB
-
-    Clearly for L=3 to stand a chance we have to dynamically create the configurations. Start from lowest, map all the ones related by symmetry, then generate second lowest (not related by symmetry etc etc)
-    So at each process, we are only storing integers. Also after we are done at each step, don't sort them but save them in a dictionary or something, because just storing 4**18 numbers needs ~100GB.
-    
-    The result we actually care about will be about the 4**18/ 10 ~ 10**9 unique configurations and their weights.
-    If we do this smartly we can get final memory of ~<10 GBs
-    '''
-    electron_count = range(L + 1)
-    configs_spinup = list(product(electron_count, repeat=3*L))
-    configs_spindown = list(product(electron_count, repeat=3*L))
-    configs =[(c_up,c_down) for c_up in configs_spinup for c_down in configs_spindown]
-    return configs
-def section_generator_partial(L, n):
-    """
-    Generates the first n configurations for a given L, saves them temporarily to a file,
-    and returns them as a list of tuples. The temporary file is deleted after use.
-    This may be useful for systems larger than L=2 when number of configurations is larger than that allowed by RAM to hold it at the same time
-
-    Args:
-        L (int):        The system size (number of chains per valley and sites per chain).
-        n (int):        The number of configurations to generate.
-
-    Returns:
-        list:           A list of configurations (tuples) equivalent to section_generator(L).
-    """
-    # Temporary file to store configurations
-    temp_file = "configurations_temp.txt"
-
-    # Step 1: Generate configurations and save to file
-    electron_count = range(L + 1)
-    count = 0
-    with open(temp_file, 'w') as f:
-        for c_up in product(electron_count, repeat=3 * L):
-            for c_down in product(electron_count, repeat=3 * L):
-                config = (c_up, c_down)
-                f.write(str(config) + '\n')
-                count += 1
-                if count >= n:
-                    break
-            if count >= n:
-                break
-
-    # Step 2: Read configurations back into a list of tuples
-    configurations = []
-    with open(temp_file, 'r') as f:
-        for line in f:
-            configurations.append(eval(line.strip()))  # Convert string back to tuple
-
-    # Step 3: Delete the temporary file
-    os.remove(temp_file)
-
-    return configurations
-def T(s,n,m,L):
-    '''
-    Takes a configuration s and acts on it with the translation operator
-    T^m_2   T^n_1 
-    Translates it by n sites along a_1 and m sites along a_2.
-
-    Args:
-        s(tuple):               The configuration of chains
-        n(int \in [0,L)):       Translation about a_1
-        m(int \in [0,L)):       Translation about a_2
-    Returns:
-        s'(tuple):              The transformed configuration
-    '''
-    s_up,s_down = s[0],s[1]
-    s_up_1 = s_up[:L]
-    s_up_2 = s_up[L:2*L]
-    s_up_3 = s_up[2*L:3*L]
-    s_down_1 = s_down[:L]
-    s_down_2 = s_down[L:2*L]
-    s_down_3 = s_down[2*L:3*L]
-    #check len(s_up_1) == L
-
-    s_up_1 = [s_up_1[i-m] for i in range(L)]
-    s_up_2 = [s_up_2[i-n] for i in range(L)]
-    s_up_3 = [s_up_3[i-(n+m)] for i in range(L)]
-    s_down_1 = [s_down_1[i-m] for i in range(L)]
-    s_down_2 = [s_down_2[i-n] for i in range(L)]
-    s_down_3 = [s_down_3[i-(n+m)] for i in range(L)]
-    s_up_t = tuple(s_up_1+s_up_2+s_up_3)
-    s_down_t = tuple(s_down_1+s_down_2+s_down_3)
-    return (s_up_t,s_down_t)
-def T_old(s, n, m, L):
-    """
-    supposedly faster but at least for 10**5 elements, my code is slightly faster.
-    #############
-    Applies the translation operator to a configuration.
-    
-    Args:
-        s (tuple): configuration, containing two tuples of integers (s_up, s_down).
-        n (int): number of sites to translate in the x-direction.
-        m (int): number of sites to translate in the y-direction.
-        L (int): number of sites in one chain direction.
-
-    Returns:
-        tuple: Translated configuration (s_up_t, s_down_t).
-    """
-    s_up, s_down = s
-    
-    # Extract slices for s_up and s_down
-    s_up_1, s_up_2, s_up_3 = s_up[:L], s_up[L:2*L], s_up[2*L:3*L]
-    s_down_1, s_down_2, s_down_3 = s_down[:L], s_down[L:2*L], s_down[2*L:3*L]
-    
-    # Translate each segment using modular arithmetic
-    s_up_1 = [s_up_1[(i - m) % L] for i in range(L)]
-    s_up_2 = [s_up_2[(i - n) % L] for i in range(L)]
-    s_up_3 = [s_up_3[(i - (n + m)) % L] for i in range(L)]
-    s_down_1 = [s_down_1[(i - m) % L] for i in range(L)]
-    s_down_2 = [s_down_2[(i - n) % L] for i in range(L)]
-    s_down_3 = [s_down_3[(i - (n + m)) % L] for i in range(L)]
-
-    # Combine translated segments and return as tuples
-    s_up_t = tuple(s_up_1 + s_up_2 + s_up_3)
-    s_down_t = tuple(s_down_1 + s_down_2 + s_down_3)
-
-    return (s_up_t, s_down_t)
-def C3(s,L):
-    '''
-    Implements C3 rotation which cycles through the chain directions while also permuting the order withing a chain type
-
-    (1,x)----->(2,x)
-    (2,x)----->(3,L-x)
-    (3,x)----->(1,L-x)
-
-    Args:
-        s(tuple):               The configuration of chains
-        L(int):                 System size
-    Returns:
-        s'(tuple):              The transformed configuration
-    '''
-    s_up,s_down = s[0],s[1]
-    s_up_1 = s_up[:L]
-    s_up_2 = s_up[L:2*L]
-    s_up_3 = s_up[2*L:3*L]
-    s_down_1 = s_down[:L]
-    s_down_2 = s_down[L:2*L]
-    s_down_3 = s_down[2*L:3*L]
-
-    # Rotate the chains:
-    # a_1 -> a_2 (unchanged order)
-    # a_2 -> a_3 (reversed order)
-    # a_3 -> a_1 (reversed order)
-    #s_up_1_rot = s_up_3[::-1]
-
-    s_up_1_rot = tuple([s_up_3[L-i-1] for i in range(L)]) #could do tuple(s_up[::-1]) instead... but for such small lists difference is marginal...
-    s_up_2_rot = s_up_1
-    s_up_3_rot = tuple([s_up_2[L-i-1] for i in range(L)])
-    s_down_1_rot = tuple([s_down_3[L-i-1] for i in range(L)])
-    s_down_2_rot = s_down_1
-    s_down_3_rot = tuple([s_down_2[L-i-1] for i in range(L)])
-
-    s_up_rot = tuple(s_up_1_rot+s_up_2_rot+s_up_3_rot)
-    s_down_rot = tuple(s_down_1_rot+s_down_2_rot+s_down_3_rot)
-
-    return (s_up_rot,s_down_rot)
-def S_inv(s):
-    '''
-    exchanges the two tuples
-    Equivalent to S_z -> S_(-z)
-    '''
-    return (s[1],s[0])
-def GroupAction(s,n,m,m_c3,m_spin,L):
-    '''
-    Acts on a configuration with a generic element from the symmetry group
-
-    Args:
-        s(tuple):               Original configuration
-        L(int):                 System size
-        n(int \in [0,L)):       Translation about a_1
-        m(int \in [0,L)):       Translation about a_2
-        m_c3(int \in [0,1,2]):  C3 rotation
-        m_spin(int \in [0,1]):  Spin inversion
-
-
-    Returns:
-        s'(tuple):              The transformed configuration
-    '''
-    s_temp = s
-    s_temp = T(s_temp,n,m,L)
-    for x in range(m_c3):
-        s_temp = C3(s_temp,L)
-    for y in range(m_spin):
-        s_temp = S_inv(s_temp)
-    return s_temp
-def c2i(config,L):
-    """
-    Finds the index of a given configuration.
-    *add explanation for mapping*
-
-    Args:
-        config(tuple):          A configuration in the form [(up_spin), (down_spin)].
-        L(int):                 Linear system size.
-
-    Returns:
-        total_index(int):       The index of the configuration.
-    """
-    # Unpack the red and blue configurations
-    up_config,down_config = config
-
-    # Convert the tuple to a unique index
-    base = L + 1
-    up_index= sum(r * (base ** i) for i, r in enumerate(reversed(up_config)))
-    down_index = sum(b * (base ** i) for i, b in enumerate(reversed(down_config)))
-    
-    # Combine the two indices
-    total_index = up_index * (base ** (3*L)) + down_index
-    
-    return total_index
-def section_reduction(L):
-    '''
-    Generates all the states, then goes throught them, applies all the group elements and bunches the configs together in equivalence classes: if \exists g \in G: g(c)=c' => c ~c'
-    Then it calls the reweighing function that turns equivalence classes into two numbers; Their representative and their order(weight)
-    Args:
-        dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the order of the group
-
-    Returns:
-        Equivalence_c...(dict): Dictionaty of the equivalence classes. Keys are the representative configurations and values their weights.
-        Tot_number(int):        Total number of configurations
-        Reduced_number(int):    Number of configurations after this reduction
-    '''
-    configs = section_generator(L)
-    Tot_number = (1+L)**(6*L)
-    Equivalence_classes = {}
-    mask = [True]*Tot_number # checks if this state has been 'met' before
-    for i,c in enumerate(configs):
-        if mask[i] == False:
-            continue
-        Equivalence_classes[i] = []
-        #######
-        for n in range(2):
-            for m in range(2):
-                for m_c3 in range(3):
-                        for m_spin in range(2):
-                            c_new = GroupAction(c,n,m,m_c3,m_spin,L)
-                            i_new = c2i(c_new,L)
-                            Equivalence_classes[i].append(i_new)
-                            mask[i_new] = False
-    Equivalence_classes = reweight(Equivalence_classes)
-    Reduced_number = len(Equivalence_classes)
-    print('Total Number of configurations',Tot_number)
-    print('Reduced Number of configurations',Reduced_number)
-    return Equivalence_classes,Reduced_number,Tot_number
-def reweight(dict):
-    '''
-    Takes the symmetry-reduced configurations and 'reweights' them. Ie for eg [x_1]:(x_1,x_2,x_3) in the same equivalence class, it turns it into [x_1]:(3) 
-    Meaning for calculations, x_1 cnofiguration should count 3 times as it really represents three states.
-
-    Args:
-        dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the ordger of the group
-
-    Returns:
-        dict_out(dictionary):   Dictionary of the form (key,value):(x_1,w_1) with w_1 the weight corresponding to configuration x_1
-    
-    '''
-    dict_out = {}
-    for k in dict.keys():
-        lst = dict[k]
-        element_counts = Counter(lst)
-        unique_elements = list(element_counts.keys())
-        multiplicities = list(element_counts.values())
-        if not multiplicities.count(multiplicities[0]) == len(multiplicities):
-            #checks that all items in an equivalence class appear an equal amount of times: 1,2,3,4,6,8,12,24
-            print('uhhhhhhhhhhhhhhhhh')
-            quit()
-        weight = len(unique_elements)
-        #dict_out[k] = (unique_elements,weight) # this returns something that holds info of all equivalent states
-        dict_out[k] = weight # this only holds info of the *representative* configuration through the dict key
-    return dict_out
-def Qnumber_printout(c):
-    '''
-    Outputs the quantum numbers of each configuration
-
-    Args:
-        c(nested tuple):        The configuration
-
-    Returns:
-        Qs(tuple):              Nested Tuple of quantum numbers:(\\nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
-    
-    '''
-    up_c,down_c = c
-    L = int(len(up_c)/3)
-    N_1_up,N_2_up,N_3_up = sum(up_c[:L]),sum(up_c[L:2*L]),sum(up_c[2*L:3*L])
-    N_1_down,N_2_down,N_3_down = sum(down_c[:L]),sum(down_c[L:2*L]),sum(down_c[2*L:3*L])
-    N_up = sum(up_c)
-    N_down = sum(down_c)
-    nu = (N_up+N_down)/L**2
-    Sz_tot = (N_up-N_down)/2
-    N_1 = N_1_up + N_1_down
-    N_2 = N_2_up + N_2_down
-    N_3 = N_3_up + N_3_down
-    Sz_1 = (N_1_up - N_1_down)/2
-    Sz_2 = (N_2_up - N_2_down)/2
-    Sz_3 = (N_3_up - N_3_down)/2
-    return (nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
-def fcombinatoric(c):
-    '''
-    Calculates the Hilbert space dimension of a configuration.
-    '''
-    c_up = c[0]
-    c_down = c[1]
-    dim = 1
-    L = int(len(c_up)/3)
-    for i in range(L):
-        dim *= comb(L,c_up[i])*comb(L,c_down[i])*comb(L,c_up[i+L])*comb(L,c_down[i+L])*comb(L,c_up[i+2*L])*comb(L,c_down[i+2*L])
-    return dim
-
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -824,13 +573,6 @@ def fcombinatoric(c):
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
-'''
-Essentially, for each chain the input will only be 
-    1) How many sites it has
-    2) How many spin up and spin down electrons it has
-    3) Its location on the grid.
-The relevant properties of the chain will then be its hamiltonian as well as its lattice location.
-'''
 class chains():
     '''
     An instance of this class represents a Hamiltonian associated with a particular configuration of chains.
@@ -849,7 +591,7 @@ class chains():
         self.sign = params['sign']# boolean T/F
         self.basis()#generates basis
         self.diag_params = params['diag_params']
-        self.sites = {}
+        self.sites = {} #uhhhhh forgot what this does exactly....
         for i,v in enumerate(self.loc):
             if v not in self.sites.keys():
                 self.sites[v] = 2**((6*self.L**2)-i-1)
@@ -905,7 +647,7 @@ class chains():
         for chain in range(int(3*L)):
             chain_up = c[0][chain]
             chain_down = c[1][chain]
-            basis_up = generate_partitions(L,chain_up)
+            basis_up = self.generate_partitions(L,chain_up)
             Hamiltonians.append(self.chain_Hamiltonian(basis_up))
             basis_down = self.generate_partitions(L,chain_down)
             Hamiltonians.append(self.chain_Hamiltonian(basis_down))
@@ -947,7 +689,7 @@ class chains():
             #in L=2 case there is overcounting of processes since 0<-->1 and 1<--->0 . compare to eg L=3: 0<-->1,1<-->2,2<-->0 
             for i in range(L_max):
                 j=(i+1)%L_chain
-                s2 = hop(s,i,j)
+                s2 = self.hop(s,i,j)
                 if s2 != -1:
                     try:
                         n = basis_dec.index(s2)
@@ -1052,7 +794,7 @@ class chains():
             print('no mode added')
             quit()
         diag_states = {}
-        diag_states['configuration'] = self.config
+        #diag_states['configuration'] = self.config
         diag_states['energies'] = e
         diag_states['states'] = v
         return diag_states
@@ -1185,31 +927,154 @@ class correlations():
     An instance of this class then calculates information about 
         1) Partition function
         2) <E>,<E^2>
-        3) other non-diagonal operators like <N>,<N^2>,....
+        3) other non-diagonal operators like <N>,<N^2>
+        4) To calculate other quantities, need to add some additional structure: 
+            Other take more info in from the chains instance (like how does the eigenbasis act on an operator O)
+            -or- devise a way to calculate that from within. this is more flexible.
 
-    The instance is initialized with the configurations and the eigenbasis.
+    The instance is initialized with the configurations, the eigenbasis, and another occupation vector.
+    For each of Nc configurations, there will be one M_c x 1 energy array, an M_c x 1 vector describing \hat{N}|n_c> for the occupation basis of config c, and an M_c x M_c array for the eigenbasis.
     '''
     def __init__(self,input_dict):
         '''
-        input dict will have structure {'config':{'multiplicity:int,'energies,:1xM array,'basis':MxM array}}
+        input dict will have structure {'config':{'multiplicity:int,'energies,:1xM array,'basis':MxM array,'ns':1xM array}}
+
+        This also shifts the spectrum to allow non-problematic handling of logs of energies
+
+        This also 'changes the basis' for the occupation numbers. for each sector, ns is a 1xM array giving the expectation of the occupation operator in the original basis
+        <j|N|i> =\delta_{ij} N_i.
+        Here,  i change the basis to the eigenbasis {|a>}. The exp. values only care about the diagonal elements:
+        <a|N|a> = \sum_{i}ns[i]|a_i|**2
         '''
-        self.basis = {}
-        self.basis_projected = {} # call a function that handles projection
+        #calculate max and min energies
+        Es_flat =  np.concatenate([sector_data['es'] for sector_data in input_dict.values()])
+        self.Emin = np.min(Es_flat)
+        self.Emax = np.max(Es_flat)
+        print('Extremal energies:',self.Emin,self.Emax)
+        self.data_dict = input_dict
+        #shifts energies
+        for sector_data in self.data_dict.values():
+            sector_data['es'] -= self.Emin
+        Es_flat = np.concatenate([sector_data['es'] for sector_data in self.data_dict.values()])
+        print('after rescaling,Extremal energies:',np.min(Es_flat),np.max(Es_flat))
+        #################
+        # change basis on occupation operator expectations
+        for sector_data in self.data_dict.values():
+            ns = sector_data['ns']
+            vs = sector_data['vs']
+            sector_data['ns'] = np.sum(ns * np.abs(vs) ** 2, axis=0)  # Sum over basis states
+            #sector_data['ns'] = np.einsum('ij,i,ij->j',vs,ns,vs.conj()) #are two methods equivalent?Should be. Check
         return
     def partition_function(self,beta):
         '''
-        calculates partion function
-        '''
-        Z = 0
-        energies = []
-        for i,s in enumerate(self.basis):
-            Z += np.exp(-beta*energies[i]) 
-        return Z
-    def H_avg(self,beta):
-        '''
+        Computes the partition function using logsumexp for numerical stability
+        Parameters:
+        data_dict (dict):           Dictionary where keys label fundamental sectors, and each sector contains:
+                                    - 'weight': Number of symmetry-equivalent sectors
+                                    - 'es': Mx1 array of eigenvalues (spectrum)
+                                    - 'vs': MxM array of eigenvectors
+
+        beta (float):               Inverse temperature (1/kT).
         
+        Returns:
+        float:                      The partition function Z.
         '''
-        return
+        log_terms = []
+        for sector_data in self.data_dict.values():
+            weight = sector_data['weight']
+            energies = sector_data['es']
+            log_terms.append(np.log(weight) + (-beta * energies))
+        log_terms = np.concatenate(log_terms)
+        log_Z = logsumexp(log_terms)
+        return log_Z
+    def H_moments(self,beta):
+        '''
+        Computes the <H> and <H^2> observables using logsumexp for numerical stability.
+        Takes care to filter out E=0 (GS) as their log is ill defined and they shouldn't contribute to shifted expectation values
+        ------------------------------------------------------------------------------
+        Notes:
+            1) Filters out the ground state which has energy zero by definition (after shifting)
+            2) Just taking log(energies) wouldn't work for negative energies so 
+        ------------------------------------------------------------------------------
+        Parameters:
+        data_dict (dict):           Dictionary where keys label fundamental sectors, and each sector contains:
+                                    - 'weight': Number of symmetry-equivalent sectors
+                                    - 'es': Mx1 array of eigenvalues (spectrum)
+                                    - 'vs': MxM array of eigenvectors
+
+        beta (float):               Inverse temperature (1/kT).
+        
+        Returns:
+        (float, float, float, float): 
+                                    - H_avg (shifted)
+                                    - H_avg_unshifted (original energy scale)
+                                    - H_sq_avg (shifted)
+                                    - H_sq_avg_unshifted (original energy scale
+        '''
+        log_Z =  self.partition_function(beta)#changed pervious code so that it returns logsumexp() rather than its exponential
+        log_terms_H = []
+        log_terms_H_sq = []
+        for sector_data in self.data_dict.values():
+            weight = sector_data['weight']
+            energies = sector_data['es']
+            valid_mask = energies > 0
+            valid_energies = energies[valid_mask]
+            #
+            if valid_energies.size > 0:
+                log_terms_H.append(np.log(weight) + (-beta * valid_energies) + np.log(valid_energies))  
+                log_terms_H_sq.append(np.log(weight) + (-beta * valid_energies) + np.log(valid_energies**2))
+                log_H = logsumexp(np.concatenate(log_terms_H)) - log_Z
+                log_H_sq = logsumexp(np.concatenate(log_terms_H_sq)) - log_Z
+                #log_terms.append(np.log(weight) + np.log(valid_energies)+ (-beta * valid_energies)-log_Z)
+                #log_terms_sq.append(np.log(weight) + np.log(valid_energies**2)  + (-beta * valid_energies)-log_Z)
+
+        ##################################
+        #while not physically relevant, return also the values with shifted energy.
+        H_avg = np.exp(log_H)
+        H_avg_unshifted = H_avg + self.Emin
+        H_sq_avg = np.exp(log_H_sq)
+        H_sq_avg_unshifted = H_sq_avg +2*self.Emin*H_avg+self.Emin**2
+        return H_avg,H_avg_unshifted,H_sq_avg,H_sq_avg_unshifted 
+    def N_moments(self, beta):
+        """
+        Computes the thermal expectation value <N> using logsumexp for numerical stability.
+        Takes care to filter out N=0 states as their log is ill defined and they shouldn't contribute to shifted expectation values
+        Parameters:
+        data_dict (dict):               Dictionary where keys label fundamental sectors, and each sector contains:
+                                        - 'weight': Number of symmetry-equivalent sectors
+                                        - 'es': Mx1 array of eigenvalues (spectrum)
+                                        - 'vs': MxM array of eigenvectors
+                                        - 'ns': Mx1 array of the <a|N|a> expectation value of the occupation in each eigenstate
+
+        beta (float):                   Inverse temperature (1/kT).
+        
+        Returns:
+        (float,float):                  Thermal expectation value <N>,<N^2>.
+        """
+        log_Z = self.partition_function(beta)  # log of partition function
+        log_terms_N = []
+        log_terms_N_sq = []
+
+        for sector_data in self.data_dict.values():
+            weight = sector_data['weight']
+            energies = sector_data['es']
+            eigenvectors = sector_data['vs']  # MxM matrix of eigenstates
+            N_a = sector_data['ns']  # 1xM (Mx1?) array of occupation numbers
+
+            # Filter out zero-occupation cases to prevent log(0) issues
+            valid_mask = N_a > 0
+            valid_N_a = N_a[valid_mask]
+            valid_energies = energies[valid_mask]
+
+            if valid_N_a.size > 0:
+                log_terms_N.append(np.log(weight) + np.log(valid_N_a) - beta * valid_energies)
+                log_terms_N_sq.append(np.log(weight) + 2*np.log(valid_N_a) - beta * valid_energies)
+
+        # Compute the final thermal average <N>
+        log_N = logsumexp(np.concatenate(log_terms_N)) - log_Z
+        log_N_sq = logsumexp(np.concatenate(log_terms_N_sq)) - log_Z
+
+        return np.exp(log_N),np.exp(log_N_sq)
 
 ####################################################################################################################################
 ####################################################################################################################################
@@ -1220,29 +1085,58 @@ class correlations():
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
-def test4():
+def test_mapping():
+    ''''
+    Tests the config to index function
     '''
-    Tests the operators and their commutator relationships. Either with full configs or a partial construction (see test5)
+    print('=='*50)
+    print('=='*15,'Testing Config 2 index function after group action','=='*15)
+    print('=='*50)
+    itime = time.time()
+    L = 2
+    params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    CCs = chain_configs(params)
+    configs = CCs.configurations
+    for i,c in enumerate(configs):
+        for n in range(2):
+            for m in range(2):
+                for m_c3 in range(3):
+                        for m_spin in range(2):
+                            c_new = CCs.GroupAction(c,n,m,m_c3,m_spin)
+                            i_new = CCs.c2i(c_new)
+                            #checking:
+                            if c_new != configs[i_new]:
+                                print('error mapping')
+                                print(c_new,configs[i_new])
+                                quit()
+    ftime = time.time()
+    print('=='*50)
+    print('=='*40,'Success','=='*40)
+    print(f"mapping check elapsed time: {ftime-itime:.2f} seconds")
+    print('=='*50)
+    return
+def test_commutators():
+    '''
+    tests commutator relations for triangular lattice
     '''
     L = 2
-    n = 100
-    partial = False
-    if partial == True:
-        configs = section_generator_partial(L,n)
-    else:
-        configs = section_generator(L)
+    params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
     itime = time.time()
+    CCs = chain_configs(params)
     '''
     checks C3T1C3^-1 == T2^-1
     '''
+    ftime = time.time()
+    print('*'*100)
+    print(f"configuration creation time: {ftime-itime:.2f} seconds")
     print('='*50)
     print('='*20,'Testing','='*21)
     print('='*50)
-    for i,config in enumerate(configs):
+    for i,config in enumerate(CCs.configurations):
         config_temp = config
-        config_temp = GroupAction(config_temp,n=0,m=0,m_c3=2,m_spin=0,L=L)
-        config_temp = GroupAction(config_temp,n=1,m=0,m_c3=1,m_spin=0,L=L)
-        config_temp_alt = GroupAction(config,n=0,m=L-1,m_c3=0,m_spin=0,L=L)
+        config_temp = CCs.GroupAction(config_temp,n=0,m=0,m_rot=2,m_spin=0)
+        config_temp = CCs.GroupAction(config_temp,n=1,m=0,m_rot=1,m_spin=0)
+        config_temp_alt = CCs.GroupAction(config,n=0,m=L-1,m_rot=0,m_spin=0)
         if config_temp != config_temp_alt:
             print('test1:Fail')
             print('config',i)
@@ -1253,11 +1147,11 @@ def test4():
     '''
     checks C3T2C3^-1 == T1 x T2^-1
     '''
-    for i,config in enumerate(configs):
+    for i,config in enumerate(CCs.configurations):
         config_temp = config
-        config_temp = GroupAction(config_temp,n=0,m=0,m_c3=2,m_spin=0,L=L)
-        config_temp = GroupAction(config_temp,n=0,m=1,m_c3=1,m_spin=0,L=L)
-        config_temp_alt = GroupAction(config,n=1,m=L-1,m_c3=0,m_spin=0,L=L)
+        config_temp = CCs.GroupAction(config_temp,n=0,m=0,m_rot=2,m_spin=0)
+        config_temp = CCs.GroupAction(config_temp,n=0,m=1,m_rot=1,m_spin=0)
+        config_temp_alt = CCs.GroupAction(config,n=1,m=L-1,m_rot=0,m_spin=0)
         if config_temp != config_temp_alt:
             print('test2:Fail')
             print('config',i)
@@ -1268,9 +1162,9 @@ def test4():
     '''
     checks C^3_3 == id
     '''
-    for i,config in enumerate(configs):
+    for i,config in enumerate(CCs.configurations):
         config_temp = config
-        config_temp = GroupAction(config_temp,n=0,m=0,m_c3=3,m_spin=0,L=L)
+        config_temp = CCs.GroupAction(config_temp,n=0,m=0,m_rot=3,m_spin=0)
         if config_temp != config:
             print('test3:Fail')
             print('config',i)
@@ -1282,358 +1176,463 @@ def test4():
     print('='*50)
     print('='*20,'Done Test','='*19)
     print('='*50)
-    print(f"elapsed time: {ftime-itime:.2f} seconds")
+    print(f"commutator check time: {ftime-itime:.2f} seconds")
+    print('*'*100)
     return
-def test5():
-    '''
-    Tests partial configuration generation for L>2
-    '''
-    L=3
-    n=100
-    configurations = section_generator_partial(L, n)
-    print(configurations)
-    return
-def test6():
-    ''''
-    Tests the config to index function
-    '''
-    print('=='*50)
-    print('=='*15,'Testing Config 2 index function after group action','=='*15)
-    print('=='*50)
-    itime = time.time()
-    L = 2
-    configs = section_generator(L)
-    for i,c in enumerate(configs):
-        for n in range(2):
-            for m in range(2):
-                for m_c3 in range(3):
-                        for m_spin in range(2):
-                            c_new = GroupAction(c,n,m,m_c3,m_spin,L)
-                            i_new = c2i(c_new,L)
-                            #checking:
-                            if c_new != configs[i_new]:
-                                print('error mapping')
-                                print(c_new,configs[i_new])
-                                quit()
-    ftime = time.time()
-    print('=='*50)
-    print('=='*40,'Success','=='*40)
-    print(f"elapsed time: {ftime-itime:.2f} seconds")
-    print('=='*50)
-    return
-def test7():
+def test_equivalent_sectors():
     '''
     Tests the Equivalent sector generator
     Specifically tests that the *sum_total* of the reduced configs equals the number of total configs
     '''
     print('*'*100)
     L = 2
-    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
+    params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
+    CCs = chain_configs(params)
+    itime = time.time()
+    reduced_number = CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    ftime = time.time()
+    print(f"configuration reduction time: {ftime-itime:.2f} seconds")
     sum_reduced = 0
     sum_total = 0
-    for k in Equivalence_clases.keys():
+    for k in symmetric_configs.keys():
         sum_reduced += 1
-        sum_total += Equivalence_clases[k]
-    print('do reduced sectors agree?',sum_reduced,Reduced_number)
-    print('do total sectors agree?',sum_total,Tot_number)
-    print('Gain ',Tot_number/Reduced_number,' vs optimal gain:',3*L*L*2)
+        sum_total += symmetric_configs[k]
+    print('do reduced sectors agree?',sum_reduced,reduced_number)
+    print('do total sectors agree?',sum_total,CCs.Nconfigs)
     print('*'*100)
     return
-def test9():
+def test_symmetry_related_spectra():
     '''
-    tests the total hilbert space dimension
+    checks that configurations related by symmetry have the same spectrum
     '''
-    L = 2
-    configs = section_generator(L)
-    dim = 0
-    for config in configs:
-        dim += fcombinatoric(config)
-    print(dim)
-    print(64**4)
-    Equivalence_classes,Reduced_number,Tot_number = section_reduction(L)
-    dim_alt = 0
-    for k in Equivalence_classes.keys():
-        dim_alt += fcombinatoric(configs[k])*Equivalence_classes[k]
-    print(dim_alt)
-    return
-def test11():
-    '''
-    1)count number of each hilbert space dimension 
-    2)time how long it takes to build and diagonalize/Lanczos
-    3) Give estimate for total time + give estimate for total memory
-    '''
-    timei = time.time()
-    L = 2
-    configs = section_generator(L)
-    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
-    timef = time.time()
-    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
-    #start diagonalizing
-    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
-    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1},'sign':True}
-    Hilbert_Space = 0
-    timei = time.time()
-    index = 0
-    Dims = {1:0,2:0,2**2:0,2**3:0,2**4:0,2**5:0,2**6:0,2**7:0,2**8:0,2**9:0,2**10:0,2**11:0,2**12:0}
-    Configs = {}
-    for k in Equivalence_clases.keys():
-        index += 1
-        c = configs[k]
-        params['config'] = c
-        chain_instance = chain(params)
-        chain_instance.basis()
-        dim = chain_instance.dim
-        Dims[dim] += 1
-        Configs[dim] = c
-    timef = time.time()
-
-    print(f"Time elapsed to generate all subbases: {timef-timei:.3f} seconds")
-    print(Dims)
-    print(Configs)
-    TimeLanczos = 0
-    TimeFull = 0
-    for k in Configs.keys():
-        timei = time.time()
-        params['config'] = Configs[k]
-        chain_instance = chain(params)
-        chain_instance.basis()
-        H = chain_instance.configuration_Hamiltonian()
-        dim = chain_instance.dim
-        if 1<dim<10:
-            #print(chain_instance.dim)
-            eigsh(H,k=dim-1, which='SA', tol=1e-10)
-        elif dim > 10:
-            eigsh(H, which='SA', tol=1e-10)
-        timef = time.time()
-        print('----'*10)
-        print('for dim',dim)
-        TimeLanczos += Dims[k]*(timef-timei)
-        print(f"Time elapsed to generate & diagonalize (Lanczos): {Dims[k]*(timef-timei):.3f} seconds")
-        ###############################
-        timei = time.time()
-        params['config'] = Configs[k]
-        chain_instance = chain(params)
-        chain_instance.basis()
-        H = chain_instance.configuration_Hamiltonian()
-        dim = chain_instance.dim
-        H_dense = H.toarray()
-        np.linalg.eigh(H_dense)
-        timef = time.time()
-        TimeFull += Dims[k]*(timef-timei)
-        print(f"Time elapsed to generate & diagonalize (full): {Dims[k]*(timef-timei):.3f} seconds")
-    print('-'*100)
-    print('TOTAL TIME LANCZOS ~'+str(TimeLanczos/60)+' minutes')
-    print('-'*100)
-    print('TOTAL TIME FULL SPEC ~'+str(TimeFull/60)+' minutes')
-    print('-'*100)
-    print('MEMORY STORAGE ESTIMATE:')
-    print('-'*100)
-    total_memory_bytes = 0
-    BYTES_PER_REAL = 8
-    BYTES_PER_COMPLEX = 16
-    for size, count in Dims.items():
-        eigenvalues_memory = size * BYTES_PER_REAL  # Memory for eigenvalues
-        eigenvectors_memory = size**2 * BYTES_PER_COMPLEX  # Memory for eigenvectors
-        total_memory_bytes += count * (eigenvalues_memory + eigenvectors_memory)
-    print('~'+str(total_memory_bytes/1024**3)+' GBs')
-    return
-def test12():
-    '''
-    Time how long it takes to generate and diagonalize(full spectrum) (in non-parallelized way) all configuration Hamiltonians
-    Check overhead time vs storing directly as dense matrix
-    '''
-    timei = time.time()
-    L = 2
-    configs = section_generator(L)
-    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
-    timef = time.time()
-    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
-    #start diagonalizing
-    params = {'L':2,'loc':0,'H_params':{'t':1}}
-    Hilbert_Space = 0
-    index = 0
-    timei = time.time()
-    for k in Equivalence_clases.keys():
-        index +=1
-        c = configs[k]
-        params['config'] = c
-        chain_instance = chain(params)
-        chain_instance.basis()
-        H = chain_instance.configuration_Hamiltonian()
-        dim = chain_instance.dim
-        if dim>1:
-            H_dense = H.toarray()
-            np.linalg.eigh(H_dense)
-            eigsh(H,k=dim-1, which='SA', tol=1e-10)
-        Hilbert_Space += Equivalence_clases[k]*dim
-    timef = time.time()
-    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
-    print(Hilbert_Space)
-    return
-def test13():
-    '''
-    Tests the interacting part of the hamiltonian
-    '''
-    L = 2
-    t = 1
-    U = 10
-    V = 2
-    mu = 5
-    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
-    c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
-    #c = ((1,0,0,0,0,0),(0,0,0,0,0,0))
-    params = {'L':L,'loc':loc,'config':c,'H_params':{'t':1,'mu':mu,'U':U,'V':V}}
-    chain_instance = chain(params)
-    chain_instance.basis()
-    print(chain_instance.basis[0])
-    print('.....')
-    print(chain_instance.count_occupancies(chain_instance.basis[0]))
-    quit()
-    masks = chain_instance.count_occupancies(loc)
-    for i in masks.keys():
-        print(i,chain_instance.binp(masks[i]))
-    return
-def test14():
-    '''
-    Time how long it takes to generate and diagonalize(Lanczos w k=<6 ) (in non-parallelized way) all configuration Hamiltonians
-    '''
-    timei = time.time()
-    L = 2
-    configs = section_generator(L)
-    Equivalence_clases,Reduced_number,Tot_number = section_reduction(L = L)
-    timef = time.time()
-    print(f"Time elapsed to generate non-symmetry related states: {timef-timei:.3f} seconds")
-    
-    loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
-    params = {'L':L,'loc':loc,'H_params':{'t':1,'U':5,'mu':1,'V':1}}
-    Hilbert_Space = 0
-    timei = time.time()
-    index = 0
-    for k in Equivalence_clases.keys():
-        index += 1
-        if index % 100 == 0:
-            print(index,time.time()-timei)
-        c = configs[k]
-        params['config'] = c
-        chain_instance = chain(params)
-        chain_instance.basis()
-        H = chain_instance.configuration_Hamiltonian()
-        dim = chain_instance.dim
-        if 1<dim<10:
-            #print(chain_instance.dim)
-            eigsh(H,k=dim-1, which='SA', tol=1e-10)
-        elif dim > 10:
-            eigsh(H, which='SA', tol=1e-10)
-        if dim > 500:
-            print('large hamiltonian of dimension',dim,' at index',index)
-        Hilbert_Space += Equivalence_clases[k]*dim
-    timef = time.time()
-    print(f"Time elapsed to generate and diagonalize Hamiltonian: {timef-timei:.3f} seconds")
-    print(Hilbert_Space)
-
-    return
-def test15():
-    '''
-    check Hamiltonian for 8x8 matrix
-    '''
-    #L = 3
-    L = 2
-    t = 2
-    U = 0.25
-    V = 0.1
-    mu = 0
-    #if binary states take form (spin1,spin2)*number of chains:
-    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3] # L= 2
-    #loc = [1,4,7,1,4,7,2,5,8,2,5,8,3,6,9,2,6,9,1,2,3,1,2,3,4,5,6,4,5,6,7,8,9,7,8,9,2,4,9,2,4,9,3,5,7,3,5,7,6,8,1,6,8,1] #L = 3
-    #if binary states take form (chain1,chain2,...,chain_3L)*number of spins:
-    #loc = [1,3,2,4,1,2,3,4,1,4,2,3]*2
-    #c = ((1,1,1,1,1,1),(1,1,1,1,1,1))
-    c = ((1,0,1,0,0,0),(0,0,0,0,0,0))
-    c = ((0,1,1,1,0,0),(0,1,1,0,1,2))
-    c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
-    #c = ((1,0,0,0,0,0),(1,0,0,0,0,0))
-    #c = ((2,0,0,0,3,1,0,0,0),(0,0,2,0,0,0,0,0,0))#L = 3
-    #print(c)
-    #print(T(c,1,0,2))
-    #print(T(c,0,1,2))
-    #print(T(c,1,1,2))
-    #c = ((1,1,0,0,0,0),(0,0,0,0,0,0))
-    #c = ((1,0,1,0,0,1),(0,0,0,0,0,0))
-    params = {'L':L,'loc':loc,'config':c,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
-    chain_instance = chains(params)
-    print('basis')
-    print(chain_instance.basis)
-    H = chain_instance.configuration_Hamiltonian().toarray()
-    #e= np.linalg.eigvalsh(H)
-    #print(e)
-    #quit()
-    # Define the colormap: white for 0, and distinct colors for other values
-    colors = ['red','white', 'blue', 'green']  # Customize as needed
-    cmap = ListedColormap(colors)
-    bounds = [-t, 0, 3*U+3*V, 5*U+2*V]  # Boundaries for the colormap
-
-    # Create a normalization for the colormap
-    norm = BoundaryNorm(bounds, cmap.N)
-
-    # Plot the Hamiltonian matrix
-    plt.figure(figsize=(8, 8))
-    plt.imshow(H)
-    #plt.imshow(H, cmap=cmap, norm=norm)
-    colorbar = plt.colorbar(ticks=[-t, 0, 3*U+3*V, 5*U+2*V])
-    colorbar.ax.set_yticklabels(["-t", "0", "3U+3V", "5U+2V"],fontsize=12)
-    plt.title('$H_{mn}$ for config $101001000000$')
-    plt.savefig('Hamiltonian.png')
-    return
-def test16():
-    '''tests that all symmetry related configs to a random config have same spectrum'''
     L = 2
     t = 3
     U = 10
     V = 2
     mu = 1
-    #if binary states take form (spin1,spin2)*number of chains:
     loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
-    c = ((1,1,2,1,0,0),(2,1,1,1,1,2)) #random configuration.
+    params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
+    CCs = chain_configs(params)
+    c = CCs.configurations[random.randint(0, len(CCs.configurations)-1)]
+    print('randomly chosen configuration:',c)
     Es = []
     for n in range(2):
         for m in range(2):
-            for m_c3 in range(3):
+            for m_rot in range(3):
                 for m_spin in range(2):
-                    c_new = GroupAction(c,n,m,m_c3,m_spin,L)
-                    params = {'L':L,'loc':loc,'config':c,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
-                    chain_instance = chains(params)
+                    c_new = CCs.GroupAction(c,n,m,m_rot,m_spin)
+                    H_params = {'L':L,'loc':loc,'config':c,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+                    chain_instance = chains(H_params)
                     diag_states = chain_instance.diagonalization()
                     Es.append(diag_states['energies'])
-                    #H = chain_instance.configuration_Hamiltonian().toarray()
-                    #e= np.linalg.eigvalsh(H)
-                    #Es.append(e)
     diff = 0
-    for i in range(len(Es)-1):
-        diff += np.sum(np.abs(Es[i+1] - Es[i]))
+    for i in range(len(Es)):
+        for j in range(len(Es)):
+            diff += np.sum(np.abs(Es[i] - Es[j]))
     if diff >1e-10:
         print('uhhhhhhh')
-    print('Delta E = ',str(diff))
+    print('Do configurations related by symmetry have identical spectr?Delta E = ',str(diff))
     return
-def exe1():
+def testclass():
     '''
-    This starts by doing some tests and then implements ED:
+    testing the class functions:
+    1) Tests all commutators are working correctly
+    2) Tests symmetry-related configurations are generated correctly
+    3) Tests symmetry-related configurations have same spectrum
     '''
     print('executing....')
     print('1) Testing commutator relations:')
-    test4()
+    test_commutators()
     print('2)Testing the state to index mapping')
-    test6()
+    test_mapping()
     print('3)Testing the section reduction')
-    test7()
+    test_equivalent_sectors()
     print('4)Tesing that symmetry-related configurations have same spectrum')
-    test16()
-    print('end of tests')
-    print('now:Diagonalizing')
-    
+    test_symmetry_related_spectra()
+    print('end of tests')   
+def exe1():
+    '''
+    Diagonalize full system and store everything in dictionary. check memory of dictionary...
+    '''
+    L = 2;t = 1;U = 10;V = 2;mu = 1;loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    print('executing....')
+    print('Step1:Generate Configurations')
+    section_params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    count = 0
+    states = 0
+    dimH = 64**(L**2) # for triangular case
+    data_dict = {}
+    itime = time.time()
+    print('Step2:Diagonalizing')
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weights'] = symmetric_configs[k]
+        count +=1
+        states += symmetric_configs[k]*chain_instance.dim
+        if count%1000 == 0:
+            #print('keys',data_dict[k].keys())
+            #print('M size',data_dict[k]['weights'],data_dict[k]['energies'].shape)
+            print(f"Progress: {100*(states/dimH):.2f} %")   
+            print(f"Time elapsed:{(time.time()-itime)/60:.2f} minutes")
+            print('*'*100)
+    print('ED ENDED')
+    print('-'*100)
+    print('MEMORY OF VARS')
+    for name, obj in locals().items():
+        size_mb = sys.getsizeof(obj) / (1024 * 1024)
+        print(f"{name}: {size_mb:.6f} MBs")
+    print('-'*100)
+    Es_flat =  np.concatenate([sector_data['energies'] for sector_data in data_dict.values()])
+    Emin = np.min(Es_flat)
+    Emax = np.max(Es_flat)
+    print('Extremal energies:',Emin,Emax)
     return
+#########################################################
+########incorporated into chain_configs class###############
+#########decommissioned. delete after double checking########
+############################################################
+'''
+def section_generator(L):
+    #Generates all configurations for a system of size L
+    #Args:
+    #    L(int):         The number of chains in the system (per flavor)
+    #    L(int):         The sites in each chain
+    #    (Equal in this case. Need to generalize)
+    #Returns:
+    #    All possible configurations
+    #    A given configuration(section) has the form (n_1,n_2,.....,n_3L)
+    
+    
+    ###########################################################################################################################################################
+    #Convention: First L numbers are for the first valley parallel to a1, [L->2L] are second valley parallel to a2, [2L->3L] are third valley parallel to a3.
+    
+    #L=1: #~64      time = 0s
+    #L=2: #~5*1e5   time = 0.06s
+    #L=3: #~7*1e10  time ~ 1.5 hours process is killed, maybe too much memory. would require about 24TB of memory woOoOah
 
+    #memory= # x 4 bytes per integer x 2*3*L integers for a configuration. + overhead for tuples (overhead is 3x memory to store a tuple so its bad but its order 1 bad)
+    #L=1: ~1e-6 GB
+    #L=2: ~1e-2 GB
+    #L=3: ~1e+4 GB
+    #L=4: ~1e+10 GB
+
+    #Clearly for L=3 to stand a chance we have to dynamically create the configurations. Start from lowest, map all the ones related by symmetry, then generate second lowest (not related by symmetry etc etc)
+    #So at each process, we are only storing integers. Also after we are done at each step, don't sort them but save them in a dictionary or something, because just storing 4**18 numbers needs ~100GB.
+    
+    #The result we actually care about will be about the 4**18/ 10 ~ 10**9 unique configurations and their weights.
+    #If we do this smartly we can get final memory of ~<10 GBs
+    
+    electron_count = range(L + 1)
+    configs_spinup = list(product(electron_count, repeat=3*L))
+    configs_spindown = list(product(electron_count, repeat=3*L))
+    configs =[(c_up,c_down) for c_up in configs_spinup for c_down in configs_spindown]
+    return configs
+def section_generator_partial(L, n):
+    
+    #Generates the first n configurations for a given L, saves them temporarily to a file,
+    #and returns them as a list of tuples. The temporary file is deleted after use.
+    #This may be useful for systems larger than L=2 when number of configurations is larger than that allowed by RAM to hold it at the same time
+
+    #Args:
+    #    L (int):        The system size (number of chains per valley and sites per chain).
+    #    n (int):        The number of configurations to generate.
+
+    #Returns:
+    #    list:           A list of configurations (tuples) equivalent to section_generator(L).
+    
+    # Temporary file to store configurations
+    temp_file = "configurations_temp.txt"
+
+    # Step 1: Generate configurations and save to file
+    electron_count = range(L + 1)
+    count = 0
+    with open(temp_file, 'w') as f:
+        for c_up in product(electron_count, repeat=3 * L):
+            for c_down in product(electron_count, repeat=3 * L):
+                config = (c_up, c_down)
+                f.write(str(config) + '\n')
+                count += 1
+                if count >= n:
+                    break
+            if count >= n:
+                break
+
+    # Step 2: Read configurations back into a list of tuples
+    configurations = []
+    with open(temp_file, 'r') as f:
+        for line in f:
+            configurations.append(eval(line.strip()))  # Convert string back to tuple
+
+    # Step 3: Delete the temporary file
+    os.remove(temp_file)
+
+    return configurations
+def T(s,n,m,L):
+    #Takes a configuration s and acts on it with the translation operator
+    #T^m_2   T^n_1 
+    #Translates it by n sites along a_1 and m sites along a_2.
+
+    #Args:
+    #    s(tuple):               The configuration of chains
+    #    n(int \in [0,L)):       Translation about a_1
+    #    m(int \in [0,L)):       Translation about a_2
+    #Returns:
+    #    s'(tuple):              The transformed configuration
+    
+    s_up,s_down = s[0],s[1]
+    s_up_1 = s_up[:L]
+    s_up_2 = s_up[L:2*L]
+    s_up_3 = s_up[2*L:3*L]
+    s_down_1 = s_down[:L]
+    s_down_2 = s_down[L:2*L]
+    s_down_3 = s_down[2*L:3*L]
+    #check len(s_up_1) == L
+
+    s_up_1 = [s_up_1[i-m] for i in range(L)]
+    s_up_2 = [s_up_2[i-n] for i in range(L)]
+    s_up_3 = [s_up_3[i-(n+m)] for i in range(L)]
+    s_down_1 = [s_down_1[i-m] for i in range(L)]
+    s_down_2 = [s_down_2[i-n] for i in range(L)]
+    s_down_3 = [s_down_3[i-(n+m)] for i in range(L)]
+    s_up_t = tuple(s_up_1+s_up_2+s_up_3)
+    s_down_t = tuple(s_down_1+s_down_2+s_down_3)
+    return (s_up_t,s_down_t)
+def T_old(s, n, m, L):
+    
+    #supposedly faster but at least for 10**5 elements, my code is slightly faster.
+    #############
+    #Applies the translation operator to a configuration.
+    
+    #Args:
+    #    s (tuple): configuration, containing two tuples of integers (s_up, s_down).
+    #    n (int): number of sites to translate in the x-direction.
+    #    m (int): number of sites to translate in the y-direction.
+    #    L (int): number of sites in one chain direction.
+
+    #Returns:
+    #    tuple: Translated configuration (s_up_t, s_down_t).
+    
+    s_up, s_down = s
+    
+    # Extract slices for s_up and s_down
+    s_up_1, s_up_2, s_up_3 = s_up[:L], s_up[L:2*L], s_up[2*L:3*L]
+    s_down_1, s_down_2, s_down_3 = s_down[:L], s_down[L:2*L], s_down[2*L:3*L]
+    
+    # Translate each segment using modular arithmetic
+    s_up_1 = [s_up_1[(i - m) % L] for i in range(L)]
+    s_up_2 = [s_up_2[(i - n) % L] for i in range(L)]
+    s_up_3 = [s_up_3[(i - (n + m)) % L] for i in range(L)]
+    s_down_1 = [s_down_1[(i - m) % L] for i in range(L)]
+    s_down_2 = [s_down_2[(i - n) % L] for i in range(L)]
+    s_down_3 = [s_down_3[(i - (n + m)) % L] for i in range(L)]
+
+    # Combine translated segments and return as tuples
+    s_up_t = tuple(s_up_1 + s_up_2 + s_up_3)
+    s_down_t = tuple(s_down_1 + s_down_2 + s_down_3)
+
+    return (s_up_t, s_down_t)
+def C3(s,L):
+    
+    #Implements C3 rotation which cycles through the chain directions while also permuting the order withing a chain type
+
+    #(1,x)----->(2,x)
+    #(2,x)----->(3,L-x)
+    #(3,x)----->(1,L-x)
+
+    #Args:
+    #    s(tuple):               The configuration of chains
+    #    L(int):                 System size
+    #Returns:
+    #    s'(tuple):              The transformed configuration
+    
+    s_up,s_down = s[0],s[1]
+    s_up_1 = s_up[:L]
+    s_up_2 = s_up[L:2*L]
+    s_up_3 = s_up[2*L:3*L]
+    s_down_1 = s_down[:L]
+    s_down_2 = s_down[L:2*L]
+    s_down_3 = s_down[2*L:3*L]
+
+    # Rotate the chains:
+    # a_1 -> a_2 (unchanged order)
+    # a_2 -> a_3 (reversed order)
+    # a_3 -> a_1 (reversed order)
+    #s_up_1_rot = s_up_3[::-1]
+
+    s_up_1_rot = tuple([s_up_3[L-i-1] for i in range(L)]) #could do tuple(s_up[::-1]) instead... but for such small lists difference is marginal...
+    s_up_2_rot = s_up_1
+    s_up_3_rot = tuple([s_up_2[L-i-1] for i in range(L)])
+    s_down_1_rot = tuple([s_down_3[L-i-1] for i in range(L)])
+    s_down_2_rot = s_down_1
+    s_down_3_rot = tuple([s_down_2[L-i-1] for i in range(L)])
+
+    s_up_rot = tuple(s_up_1_rot+s_up_2_rot+s_up_3_rot)
+    s_down_rot = tuple(s_down_1_rot+s_down_2_rot+s_down_3_rot)
+
+    return (s_up_rot,s_down_rot)
+def S_inv(s):
+    
+    #exchanges the two tuples
+    #quivalent to S_z -> S_(-z)
+    
+    return (s[1],s[0])
+def GroupAction(s,n,m,m_c3,m_spin,L):
+    
+    #Acts on a configuration with a generic element from the symmetry group
+
+    #Args:
+    #    s(tuple):               Original configuration
+    #    L(int):                 System size
+    #   n(int \in [0,L)):       Translation about a_1
+    #    m(int \in [0,L)):       Translation about a_2
+    #    m_c3(int \in [0,1,2]):  C3 rotation
+    #    m_spin(int \in [0,1]):  Spin inversion
+
+
+    #Returns:
+    #    s'(tuple):              The transformed configuration
+    
+    s_temp = s
+    s_temp = T(s_temp,n,m,L)
+    for x in range(m_c3):
+        s_temp = C3(s_temp,L)
+    for y in range(m_spin):
+        s_temp = S_inv(s_temp)
+    return s_temp
+def c2i(config,L):
+    
+    #Finds the index of a given configuration.
+    #add explanation for mapping*
+
+    #Args:
+    #    config(tuple):          A configuration in the form [(up_spin), (down_spin)].
+    #    L(int):                 Linear system size.
+
+    #Returns:
+    #    total_index(int):       The index of the configuration.
+    
+    # Unpack the red and blue configurations
+    up_config,down_config = config
+
+    # Convert the tuple to a unique index
+    base = L + 1
+    up_index= sum(r * (base ** i) for i, r in enumerate(reversed(up_config)))
+    down_index = sum(b * (base ** i) for i, b in enumerate(reversed(down_config)))
+    
+    # Combine the two indices
+    total_index = up_index * (base ** (3*L)) + down_index
+    
+    return total_index
+def section_reduction(L):
+    
+    #Generates all the states, then goes throught them, applies all the group elements and bunches the configs together in equivalence classes: if \exists g \in G: g(c)=c' => c ~c'
+    #Then it calls the reweighing function that turns equivalence classes into two numbers; Their representative and their order(weight)
+    #Args:
+    #    dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the order of the group
+
+    #Returns:
+    #    Equivalence_c...(dict): Dictionaty of the equivalence classes. Keys are the representative configurations and values their weights.
+    #    Tot_number(int):        Total number of configurations
+    #    Reduced_number(int):    Number of configurations after this reduction
+    
+    configs = section_generator(L)
+    Tot_number = (1+L)**(6*L)
+    Equivalence_classes = {}
+    mask = [True]*Tot_number # checks if this state has been 'met' before
+    for i,c in enumerate(configs):
+        if mask[i] == False:
+            continue
+        Equivalence_classes[i] = []
+        #######
+        for n in range(2):
+            for m in range(2):
+                for m_c3 in range(3):
+                        for m_spin in range(2):
+                            c_new = GroupAction(c,n,m,m_c3,m_spin,L)
+                            i_new = c2i(c_new,L)
+                            Equivalence_classes[i].append(i_new)
+                            mask[i_new] = False
+    Equivalence_classes = reweight(Equivalence_classes)
+    Reduced_number = len(Equivalence_classes)
+    print('Total Number of configurations',Tot_number)
+    print('Reduced Number of configurations',Reduced_number)
+    return Equivalence_classes,Reduced_number,Tot_number
+def reweight(dict):
+    
+    #Takes the symmetry-reduced configurations and 'reweights' them. Ie for eg [x_1]:(x_1,x_2,x_3) in the same equivalence class, it turns it into [x_1]:(3) 
+    #Meaning for calculations, x_1 cnofiguration should count 3 times as it really represents three states.
+
+    #Args:
+     #   dict(dictionary):       Dictionary of the form (key,value):(x_1,x_1,x_2,x_3,.....) with number equal to the ordger of the group
+
+    #Returns:
+    #    dict_out(dictionary):   Dictionary of the form (key,value):(x_1,w_1) with w_1 the weight corresponding to configuration x_1
+    
+    
+    dict_out = {}
+    for k in dict.keys():
+        lst = dict[k]
+        element_counts = Counter(lst)
+        unique_elements = list(element_counts.keys())
+        multiplicities = list(element_counts.values())
+        if not multiplicities.count(multiplicities[0]) == len(multiplicities):
+            #checks that all items in an equivalence class appear an equal amount of times: 1,2,3,4,6,8,12,24
+            print('uhhhhhhhhhhhhhhhhh')
+            quit()
+        weight = len(unique_elements)
+        #dict_out[k] = (unique_elements,weight) # this returns something that holds info of all equivalent states
+        dict_out[k] = weight # this only holds info of the *representative* configuration through the dict key
+    return dict_out
+def Qnumber_printout(c):
+    
+    #Outputs the quantum numbers of each configuration
+
+    #Args:
+    #    c(nested tuple):        The configuration
+
+    #Returns:
+    #    Qs(tuple):              Nested Tuple of quantum numbers:(\\nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
+    
+    
+    up_c,down_c = c
+    L = int(len(up_c)/3)
+    N_1_up,N_2_up,N_3_up = sum(up_c[:L]),sum(up_c[L:2*L]),sum(up_c[2*L:3*L])
+    N_1_down,N_2_down,N_3_down = sum(down_c[:L]),sum(down_c[L:2*L]),sum(down_c[2*L:3*L])
+    N_up = sum(up_c)
+    N_down = sum(down_c)
+    nu = (N_up+N_down)/L**2
+    Sz_tot = (N_up-N_down)/2
+    N_1 = N_1_up + N_1_down
+    N_2 = N_2_up + N_2_down
+    N_3 = N_3_up + N_3_down
+    Sz_1 = (N_1_up - N_1_down)/2
+    Sz_2 = (N_2_up - N_2_down)/2
+    Sz_3 = (N_3_up - N_3_down)/2
+    return (nu,Sz_tot,N_1,N_2,N_3,Sz_1,Sz_2,Sz_3)
+def fcombinatoric(c):
+    
+    #Calculates the Hilbert space dimension of a configuration.
+    
+    c_up = c[0]
+    c_down = c[1]
+    dim = 1
+    L = int(len(c_up)/3)
+    for i in range(L):
+        dim *= comb(L,c_up[i])*comb(L,c_down[i])*comb(L,c_up[i+L])*comb(L,c_down[i+L])*comb(L,c_up[i+2*L])*comb(L,c_down[i+2*L])
+    return dim
+
+'''
 #####################################
 #########decommissioned functions####
+##incorporated into chains class####
 #############delete after checking###
 #####################################
 '''
@@ -1722,6 +1721,7 @@ def hop(s,i,j):
     else:
         s2 = s - K + L
     return s2
+
 def generate_partitions(L, N):
     
     #Generate all possible partitions of N electrons in a chain with L sites as binary strings.
@@ -1778,42 +1778,12 @@ def generate_partitions(L, N):
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("test", type=str, choices=["no_test","test1", "test2","test3","test4","test5", "test6","test7","test8","test9","test10","test11","test12","test13","test14","test15","test16"], help="test to run")
+    parser.add_argument("test", type=str, choices=["no_test","testclass"], help="test to run")
     parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
 
     args = parser.parse_args()
 
-    if args.test == "test1":
-        test1()
-    elif args.test == "test2":
-        test2()
-    elif args.test == "test3":
-        test3()
-    elif args.test == "test4":
-        test4()
-    elif args.test == "test5":
-        test5()
-    elif args.test == "test6":
-        test6()
-    elif args.test == "test7":
-        test7()
-    elif args.test == "test8":
-        test8()
-    elif args.test == "test9":
-        test9()
-    elif args.test == "test10":
-        test10()
-    elif args.test == "test11":
-        test11()
-    elif args.test == "test12":
-        test12()
-    elif args.test == "test13":
-        test13()
-    elif args.test == "test14":
-        test14()
-    elif args.test == "test15":
-        test15()
-    elif args.test == "test16":
-        test16()
+    if args.test == "testclass":
+        testclass()
     if args.execute == "exe1":
         exe1()

@@ -34,7 +34,7 @@ def basis_00(L,Q1,Q2):
     ''' 
     generates Lin lookup tables for a given symmetry sector
     Output:
-    1)states and number of states
+    1)states and number of states and also nstates, ie the occupancy of each basis state. this final one is to be used later for ED
     2) lookup maps J_up,J_down,J
     '''
     states = []
@@ -53,7 +53,11 @@ def basis_00(L,Q1,Q2):
                     states.append(I_up+I_down*2**L)
                     count +=1
                     J += 1
-    return states, len(states),J_up,J_down,J
+    #now given the basis for the chain, also provide a nstates vector that says how many electons there are for each basis state
+    nstates = []
+    for state in states:
+        nstates.append(countBits(state))
+    return states, len(states),J_up,J_down,J,nstates
 ################################
 ####  HAMILTONIAN CREATION #####
 ################################
@@ -76,10 +80,10 @@ def ham_symm_full(parameters):
     mu = parameters['mu']
     U = parameters['int']
     sign = parameters['sign']
-    mu_eff = mu+0.5*U
+    mu_eff = mu+0.5*U # maps between Un_down n_up and Un^2
     mu_eff = mu
     #1) create basis
-    states, M,J_up,J_down,J = basis_00(L=L,Q1=Q_up,Q2=Q_down)
+    states, M,J_up,J_down,J,nstates = basis_00(L=L,Q1=Q_up,Q2=Q_down)
     #2) build Hamiltonian
     H = np.zeros((M,M),dtype=float)
     for m in range(M):
@@ -116,9 +120,11 @@ def ham_symm_full(parameters):
                     sgn = (-1)**count_ones_between_flips(binp(psi_down,length=L),binp(psi_down_prime,length=L))
                 ndown_prime = J_down[psi_down_prime]
                 H[m,nup + ndown_prime] -= t*sgn
-    print(np.all(H==H.T))
-    sparsity(H)
-    return H 
+    if np.all(H==H.T) == False:
+        print('hermitian?',np.all(H==H.T))
+        quit()
+    #sparsity(H)
+    return H,nstates 
 def ham_symm_sparse(parameters):
     '''
     Creates sparse Hamiltonian
@@ -137,7 +143,7 @@ def ham_symm_sparse(parameters):
     mu_eff = mu+0.5*U
     mu_eff = mu
     #1) create basis
-    states, M,J_up,J_down,J = basis_00(L=L,Q1=Q_up,Q2=Q_down)
+    states, M,J_up,J_down,J,nstates = basis_00(L=L,Q1=Q_up,Q2=Q_down)
     #2) build Hamiltonian
     for m in range(M):
         state = states[m]
@@ -178,7 +184,7 @@ def ham_symm_sparse(parameters):
                 data.append(-t)
     H_coo = coo_matrix((data, (rows, cols)), shape=(M,M), dtype=dtype)
     H_csr = H_coo.tocsr()
-    return H_csr
+    return H_csr,nstates
 ################################
 ###### EIGENSOLVERS FOR H ######
 ################################
@@ -195,7 +201,7 @@ def getSpectrumLanczos(pars,k=2):
             if n_up == 0 or n_down == 0: continue #here the hilbert space is one dimensional-> can't do lanczos.
             pars['Electrons_up'] = n_up
             pars['Electrons_down'] = n_down
-            H = ham_symm_sparse(pars)
+            H = ham_symm_sparse(pars)[0]
             print('=============')
             print('Lanczos for (n_up,n_down) sector (',n_up,',',n_down,')')
             print('=============')
@@ -220,13 +226,12 @@ def getSpectrumFull(pars):
     energies = []
     lowestEnergy = 1e10
     L = pars['L']
-
     for n_up in np.arange(0,L+1):
         for n_down in np.arange(0,L+1):
             if n_up+n_down != L: continue # interested in half-filled case
             pars['Electrons_up'] = n_up
             pars['Electrons_down'] = n_down
-            H = ham_symm_full(pars)
+            H = ham_symm_full(pars)[0]
             print('=============')
             print('diagonalizing (n_up,n_down) sector (',n_up,',',n_down,')')
             print('=============')
@@ -241,6 +246,44 @@ def getSpectrumFull(pars):
     print("Lowest energy:",lowestEnergy)
     print("The ground state occured in (n_up,n_down)=",GSSector)
     return (lowestEnergy,GSSector,GSEigenvector,energies)
+def EDFullSpectrum(pars):
+    '''
+    Does ED on all sectors and returns
+    0) Info on lowest sector and energy
+    1) Energies as a list of 1D arrays, one array per sector
+    2) Eigenstates as a list of 2D arrays, one per sector
+    3) An 'occupation' vector for each sector (that tells us the occupation number of each basis element in a sector)
+    N_up goes from 0 to L
+    N_down goes from 0 to L
+    '''
+    energies = []
+    eigenstates = []
+    eigenoccupation = []
+    lowestEnergy = 1e10
+    L = pars['L']
+    for n_up in np.arange(0,L+1):
+        for n_down in np.arange(0,L+1):
+            #if n_up+n_down != L: continue # interested in half-filled case
+            pars['Electrons_up'] = n_up
+            pars['Electrons_down'] = n_down
+            H,nstates = ham_symm_full(pars)
+            #print('=============')
+            #print('diagonalizing (n_up,n_down) sector (',n_up,',',n_down,')')
+            #print('=============')
+            lam,v = np.linalg.eigh(H)
+            energies.append(lam)
+            eigenstates.append(v)
+            #print(v.dtype,v.shape)
+            eigenoccupation.append(nstates)
+            #keep track of GS
+            if min(lam) < lowestEnergy:
+                lowestEnergy  = min(lam)
+                GSSector      = (n_up,n_down)
+                GSEigenvector = v[:,lam.argmin()]    
+    #print("Energies assembled!")
+    #print("Lowest energy:",lowestEnergy)
+    print("The ground state occured in (n_up,n_down)=",GSSector)
+    return (lowestEnergy,GSSector,energies,eigenstates,eigenoccupation)
 ################################
 ######  HELPER FUNCTIONS #######
 ################################
@@ -699,6 +742,74 @@ def configs_valley(L1,L2,n_up,n_down):
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
+##############################################  STATMECH ##########################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+def partition_function(es,beta,emin=0):
+    '''
+    given a list of arrays for the energies in each sector, calculate the partition function at thempeature 1/beta
+    '''
+    Z = 0
+    for sec in es:
+        for state in range(sec.shape[0]):
+            #Z += np.exp(-beta*sec[state])
+            Z += np.exp(-beta * (sec[state] - emin))*np.exp(-beta * emin)
+    return Z
+def energy(es,beta,emin=0):
+    '''
+    given a list of arrays for the energies in each sector, calculate the <H>  and <H^2>at tempeature 1/beta
+    '''
+    H = 0
+    H2 = 0
+    for sec in es:
+        for state in range(sec.shape[0]):
+            #H += np.exp(-beta*sec[state])*sec[state]
+            H += np.exp(-beta * (sec[state] - emin))*np.exp(-beta * emin)*sec[state]
+            #H2 += np.exp(-beta*sec[state])*(sec[state])**2
+            H2 += np.exp(-beta * (sec[state] - emin))*np.exp(-beta * emin)*(sec[state])**2
+    return H,H2
+    
+def N_diagonal(vs,ns):
+    '''
+    for each eigenstate, calculate the diagonal elements of the number operator:
+    
+    <\\alpha|N|\\alpha> = \sum_{ij} <i|N|j>\\alpha^*_i \\alpha_j = \sum_{i} <i|N|i> |\\alpha|^2_i
+    '''
+    print('checking normalization')
+    for i in range(len(vs)):
+        norm = np.einsum('ij,ij->j',vs[i],vs[i].conj())
+        if np.all(norm) !=1:
+            print('uh? not normalized')
+    print('normalization done')
+    N_diag = []
+    N_sq_diag = []
+    for i in range(len(vs)):#go through each sector
+        occupations = np.einsum('mn,m,mn->n',vs[i],ns[i],vs[i].conj())
+        occupations_squared =  np.einsum('mn,m,m,mn->n',vs[i],ns[i],ns[i],vs[i].conj())
+        N_diag.append(occupations.tolist())#m is basis index and n is order of vectors, i think***
+        N_sq_diag.append(occupations_squared.tolist())
+    #print(N_diag[3],N_diag[3][0].tolist()) #causes floating point errors....
+    return N_diag,N_sq_diag
+def Navg(es,N_diag,N_sq_diag,beta,emin=0):
+    Obs = 0
+    Obs_sq = 0
+    for i in range(len(es)):#loop through sectors
+        for state in range(es[i].shape[0]):
+            #Obs += np.exp(-beta*es[i][state])*N_diag[i][state]
+            Obs += np.exp(-beta * (es[i][state] - emin))*np.exp(-beta * emin)*N_diag[i][state]
+            #Obs_sq += np.exp(-beta*es[i][state])*N_sq_diag[i][state]
+            Obs_sq += np.exp(-beta * (es[i][state] - emin))*np.exp(-beta * emin)*N_sq_diag[i][state]
+    return Obs,Obs_sq
+
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
 ##############################################  RUN FUNCS ##########################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -863,8 +974,165 @@ def feature6():
     print(count_ones_between_flips(binp(s1,length=20), binp(s2,length=20)))
     return
 def feature7():
+    '''
+    runs ED for chain. Saves 1)Energies 2)eigenstates 3)N vector
+    
+    L = 6: T ~ 14s
+    L = 7: T ~ 91s
+    L = 8: T ~ 
+    '''
+    itime = time.time()
+    pars = {}
+    L = 6
+    U = 20
+    pars['L'] = L
+    pars['mu'] = U/2
+    pars['int'] = U
+    pars['hop'] = 1
+    pars['sign'] = True
+    (lowestEnergy,GSSector,energies,eigenstates,eigennumber,eigenoccup) = EDFullSpectrum(pars)
+    ftime = time.time()
+    print(f"configuration reduction time: {ftime-itime:.2f} seconds")
+    betas = np.array(list(np.linspace(0.1,1,num=100))+list(np.linspace(1,10,num=100))+list(np.linspace(10,20,num=100)))
+    #betas = np.linspace(0.1,1,num=100)
+    Es = np.zeros_like(betas)
+    Es2 = np.zeros_like(betas)
+    for i,beta in enumerate(betas):
+        Z = partition_function(energies,beta)
+        E1,E2 = energy(energies,beta)
+        Es[i] = E1/Z
+        Es2[i] = (beta**2)*((E2)/Z - Es[i]**2)
+    ###########################################
+    betas_inset = np.linspace(10,20,num=100)
+    Es_inset = np.zeros_like(betas_inset)
+    Es2_inset = np.zeros_like(betas_inset)
+    for i,beta in enumerate(betas_inset):
+        Z = partition_function(energies,beta)
+        E1,E2 = energy(energies,beta)
+        Es_inset[i] = E1/Z
+        Es2_inset[i] = (beta**2)*((E2)/Z - Es_inset[i]**2)
+    ########################
+    fig, ax = plt.subplots()
+    ax.plot(1/betas,Es, label="Main Plot")
+    ax.set_xlabel("$T$")
+    ax.set_ylabel("$E$")
+    ax.set_title("$\\langle H \\rangle$ at U/t="+str(U))
+    # Create the inset
+    inset_ax = fig.add_axes([0.6, 0.2, 0.25, 0.25])  # [x, y, width, height] in figure coordinates
+    inset_ax.plot(1/betas_inset,Es_inset, color="red", label="Inset Plot")
+    inset_ax.set_title("low T", fontsize=10)
+    inset_ax.tick_params(labelsize=8)
+    plt.savefig('energy_observable_'+str(U)+'_.png',dpi=1000)
+    plt.clf()
+    #########
+    fig, ax = plt.subplots()
+    ax.plot(1/betas,Es2, label="Main Plot")
+    ax.set_xlabel("$T$")
+    ax.set_title("$C_{\chi}$ at U/t="+str(U))
+    # Create the inset
+    inset_ax = fig.add_axes([0.6, 0.6, 0.25, 0.25])  # [x, y, width, height] in figure coordinates
+    inset_ax.plot(1/betas_inset,Es2_inset, color="red", label="Inset Plot")
+    inset_ax.set_title("low T", fontsize=10)
+    inset_ax.tick_params(labelsize=8)
+    plt.savefig('heat_capacity_observable_'+str(U)+'_.png',dpi=1000)
+
     return
 def feature8():
+    '''
+    runs ED for chain. Saves 1)Energies 2)eigenstates 3)N vector
+    
+    L = 6: T ~ 14s
+    L = 7: T ~ 91s
+    L = 8: T ~ 
+    '''
+    itime = time.time()
+    pars = {}
+    L = 6
+    U = 6
+    pars['L'] = L
+    pars['mu'] = U/2
+    pars['int'] = U
+    pars['hop'] = 1
+    pars['sign'] = True
+    (lowestEnergy,GSSector,energies,eigenstates,eigenoccupation) = EDFullSpectrum(pars)
+    ftime = time.time()
+    print(f"configuration reduction time: {ftime-itime:.2f} seconds")
+    #############################
+    #calculate <\alpha|N|\alpha> for each basis state.
+    N_diag,N_sq_diag = N_diagonal(eigenstates,eigenoccupation)
+    betas = np.array(list(np.linspace(0.1,1,num=100))+list(np.linspace(1,10,num=100))+list(np.linspace(10,30,num=100)))
+    #betas = np.linspace(0.01,1,num=200)
+    Ns = np.zeros_like(betas)
+    Ns_sq = np.zeros_like(betas)
+    Zs = np.zeros_like(betas)
+    for i,beta in enumerate(betas):
+        Z = partition_function(energies,beta)
+        ns,ns_sq = Navg(energies,N_diag,N_sq_diag,beta)
+        #ns = Navg(energies,N_diag,beta)
+        Zs[i] = Z
+        Ns[i] = ns/Z
+        Ns_sq[i] = ns_sq/Z
+    ######################
+    ###free energy plot###
+    ######################
+    fig, ax = plt.subplots()
+    ax.plot(1/betas,-(1/betas)*np.log(Zs), label="Main Plot")
+    ax.set_xlabel("$T$")
+    ax.set_title("$F$ at U/t="+str(U)+'(h.f.)')
+    plt.savefig('1d_chain_figures/free_energy.png')
+    ######################
+    #######<N> plot#######
+    ######################
+    #plt.plot(1/betas,(betas**2)*(Ns_sq - Ns**2),'-.',c='b')
+    #plt.savefig('1d_chain_figures/test_N.png')
+    return
+def feature9():
+    '''
+    ED plotting <N> vs chemical potential
+    '''
+    itime = time.time()
+    pars = {}
+    L = 6
+    U = 5
+    pars['L'] = L
+    #pars['int'] = U
+    pars['hop'] = 1
+    pars['sign'] = True
+    ###########################################################
+    delta_mus = np.linspace(0,1.5,200) #as multiples of U
+    betas = np.array([5,10,15])
+    Us = np.array([2.5,5,10])
+    Ns = np.zeros((200,4,3),dtype=float)
+    for i,mu in enumerate(delta_mus):
+        for k,U in enumerate(Us):
+            print('(i,k)',i,k)
+            pars['mu'] = U*(1/2+mu)
+            pars['int'] = U
+            (lowestEnergy,GSSector,energies,eigenstates,eigenoccupation) = EDFullSpectrum(pars)
+            N_diag,N_sq_diag = N_diagonal(eigenstates,eigenoccupation)
+            for j,beta in enumerate(betas):
+                Z = partition_function(energies,beta,lowestEnergy)
+                ns,ns_sq = Navg(energies,N_diag,N_sq_diag,beta,emin=lowestEnergy)
+                Ns[i,j,k] = ns/Z
+
+    ######################
+    ###plot###
+    ######################
+    fig, ax = plt.subplots()
+    ax.plot(1/2+delta_mus,Ns[:,0,0],c='g',alpha=0.5)
+    ax.plot(1/2+delta_mus,Ns[:,1,0],c='g',alpha=0.7)
+    ax.plot(1/2+delta_mus,Ns[:,2,0],c='g',alpha=1.0,label='$U=2.5$')
+    ax.plot(1/2+delta_mus,Ns[:,0,1],c='b',alpha=0.5)
+    ax.plot(1/2+delta_mus,Ns[:,1,1],c='b',alpha=0.7)
+    ax.plot(1/2+delta_mus,Ns[:,2,1],c='b',alpha=1.0,label='$U=5$')
+    ax.plot(1/2+delta_mus,Ns[:,0,2],c='r',alpha=0.5)
+    ax.plot(1/2+delta_mus,Ns[:,1,2],c='r',alpha=0.7)
+    ax.plot(1/2+delta_mus,Ns[:,2,2],c='r',alpha=1.0,label='$U=10$')
+    ax.set_xlabel("$\\mu/U$")
+    ax.set_title("$\\langle N \\rangle $")
+    plt.grid(visible=True,axis='y')
+    plt.legend()
+    plt.savefig('/mnt/users/kotssvasiliou/ED/utils/1d_chain_figures/N_vs_mu.png')
     return
 ####################################################################################################################################
 ####################################################################################################################################
@@ -880,7 +1148,7 @@ def feature8():
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("feature", type=str, choices=["feature1", "feature2","feature3","feature4","feature5", "feature6","feature7","feature8"], help="Feature to run")
+    parser.add_argument("feature", type=str, choices=["feature1", "feature2","feature3","feature4","feature5", "feature6","feature7","feature8","feature9"], help="Feature to run")
 
     args = parser.parse_args()
 
@@ -900,5 +1168,7 @@ if __name__ == "__main__":
         feature7()
     elif args.feature == "feature8":
         feature8()
+    elif args.feature == "feature9":
+        feature9()
 
 
