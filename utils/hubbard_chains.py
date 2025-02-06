@@ -275,6 +275,9 @@ def EDFullSpectrum(pars):
             eigenstates.append(v)
             #print(v.dtype,v.shape)
             eigenoccupation.append(nstates)
+            #print('****')
+            #print(nstates)
+            #print('***')
             #keep track of GS
             if min(lam) < lowestEnergy:
                 lowestEnergy  = min(lam)

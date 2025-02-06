@@ -17,6 +17,7 @@ import random
 from scipy.special import logsumexp
 from scipy.sparse import SparseEfficiencyWarning
 import warnings
+from numba import njit
 
 warnings.simplefilter("ignore", SparseEfficiencyWarning) #supress warning???
 
@@ -87,6 +88,13 @@ These should scale like ~ (1+L)**(6*L)/(6L**2)
             0) Add n.n. repulsion V
             1) Not important for now<------Figure out how to consistencly define the chains for a L1 x L2 system with L1 != L2
             2) For small temperatures, projecting Hilbert space to N_electrons = \\nu *(L**2) \pm 1 should be enough<--------Figure out how to dynamically generate the configurations for systems larger than 2x2.
+04 Feb Log:
+    ED for 2x2 triangular lattice is done and most observables are done. 
+    To do:
+            1) Implement hashing function to allow partial construction of HIlbert space for states that pass a condition. This 'breaks' our c2i function so we need a 'bridging' hash function.
+            2) Check for sure the C3 symmetry, that its implemented correctly, and then also do the square lattice C4/C2 symmetry.
+            3) Implement Green's function calculation.
+            4) Not for this file, but benchmark some Greens function stuff for Hubbard chain.
 '''
 ####################################################################################################################################
 ####################################################################################################################################
@@ -153,18 +161,22 @@ class chain_configs():
     Can do Lanczos for L=3 triangular and L=4 square, but only on part of the HIlbert space, eg around N_el = L**2 \pm 1, so nearby filling 1.
     '''
     def __init__(self,params):
+        if 'verbose' in params:
+            self.verbose = params['verbose']
+        else:
+            self.verbose = 0
         self.geometry = params['geometry'] #'triangular' or 'square'
         self.L = params['L'] #L lattice size
         self.partial = params['partial'] #boolean
         self.projection = params['projection'] #boolean
-        if 'n_el_max' in params: #if there's no projection, no need to define min and max number of electrons
-            self.n_el_max = params['n_el_max']
+        if 'Nel_max' in params: #if there's no projection, no need to define min and max number of electrons
+            self.Nel_max = params['Nel_max']
         else:
-            self.n_el_max = None
-        if 'n_el_min' in params:
-            self.n_el_min = params['n_el_min']
+            self.Nel_max = None
+        if 'Nel_min' in params:
+            self.Nel_min = params['Nel_min']
         else:
-            self.n_el_min = None
+            self.Nel_min = None
 
 
         if self.geometry == 'triangular':
@@ -175,17 +187,64 @@ class chain_configs():
             self.Nchains = 2*self.L
             self.Gs = ['TR','T1','T2','C2']
             self.rotate = self.C2
-        self.Nconfigs = (self.L+1)**(2*self.Nchains)
+        self.Nconfigs = (self.L+1)**(2*self.Nchains) #only true w/o projection.... this gets updated inside section_generator_proj
 
-        if self.partial == True and 'N_c' in params:
-            self.N_c = params['N_c'] # how many configs to generate
+        if self.projection == True: 
+            self.N_c = self.Nconfigs
+            self.section_generator_proj() # generates the projected configurations
+        elif self.partial == True:
+            self.N_c = params['N_c']
+            self.section_generator_partial(n=self.N_c)# generates the configurations: partial case
+            print('partial not reccommended. quitting')
         else:
             self.N_c = self.Nconfigs
-        self.section_generator(n=self.N_c) # generates the configurations
+            self.section_generator() #generates the configurations
         return
     
     #####
-    def section_generator(self,n=0):
+    def section_generator(self):
+        '''
+        Generates all configurations for a system of size L.
+        Only really feasible for L=1,2 triangular and L=1,2,3 rectangular. For other cases use *partial*
+        Convention: First L numbers are for the first valley parallel to a1, [L->2L] are second valley parallel to a2, [2L->3L] are third valley parallel to a3.
+
+
+        Args:
+            L (int):        The system size (number of chains per valley and sites per chain).
+        Returns:
+            list:           A list of configurations (tuples).
+        '''
+        self.index_map = {}
+        electron_count = range(self.L + 1)
+        configs_spinup = list(product(electron_count, repeat=self.Nchains))
+        configs_spindown = list(product(electron_count, repeat=self.Nchains))
+        configs =[(c_up,c_down) for c_up in configs_spinup for c_down in configs_spindown]
+        self.configurations = configs
+        for i in range(len(self.configurations)):
+            self.index_map[i] = i #trivial map in this case
+        return 
+    def section_generator_proj(self):
+        '''
+        generates all configurations while checking their electron number.
+        An alternative to self.section_generator
+        '''
+        print('doing projected section config')
+        self.index_map = {}  # Maps total_index to real_index
+        configs = []
+        electron_count = range(self.L + 1) 
+        configs_spinup = list(product(electron_count, repeat=self.Nchains))
+        configs_spindown = list(product(electron_count, repeat=self.Nchains))
+        for c_up in product(electron_count, repeat=self.Nchains):
+            for c_down in product(electron_count, repeat=self.Nchains):
+                Ne = sum(c_up)+ sum(c_down)
+                if Ne <= self.Nel_max and Ne >= self.Nel_min:
+                    total_index = self.compute_total_index((c_up,c_down)) # total index of config
+                    self.index_map[total_index] = len(configs)  # true index of config
+                    configs.append((c_up,c_down))# Store valid configuration
+        self.configurations = configs
+        self.Nconfigs = len(self.configurations)
+        return
+    def section_generator_partial(self,n=0):
         """
         **PREVIOUSLY CALLED SECTION_GENERATION_PARTIAL**
 
@@ -208,7 +267,7 @@ class chain_configs():
             2)ALLOW A SMARTER WAY TO GENERATE STATES
         """
         # Temporary file to store configurations
-        temp_file = "configurations_temp.txt"
+        temp_file = "/mnt/users/kotssvasiliou/ED/utils/configurations_temp.txt"
 
         # Step 1: Generate configurations and save to file
         electron_count = range(self.L + 1)
@@ -402,13 +461,14 @@ class chain_configs():
             s_temp = self.TR(s_temp)
         return s_temp
     
-    def c2i(self,config):
+    def compute_total_index(self,config):
         """
-        Finds the index of a given configuration.
-        *add explanation for mapping*
+        Finds the total index of a given configuration.
+        
+        For Projection == True: total index != real index
 
         Args:
-            config(tuple):          A configuration in the form [(up_spin), (down_spin)].
+            config(tuple):          A configuration in the form ((up_spin), (down_spin)).
             L(int):                 Linear system size.
             Nchains(int):           The number of chains in the system
 
@@ -425,6 +485,19 @@ class chain_configs():
         # Combine the two indices
         total_index = up_index * (base ** (self.Nchains)) + down_index
         return total_index
+    def c2i(self,config):
+        """
+        Finds the real index of a given configuration.
+        For Projection == True: total index != true index
+
+        Args:
+            config(tuple):          Configuration in the form ((up_spin), (down_spin)).
+
+        Returns:
+            real_index(int):        The compressed index, or None if config was projected out.
+        """
+        total_index = self.compute_total_index(config)  # Get raw total index
+        return self.index_map.get(total_index, None)  # Return mapped index or None
 
     def configuration_reduction(self):
         '''
@@ -454,20 +527,24 @@ class chain_configs():
                 M_rot = 3
             else:
                 M_rot = 2
-            for n in range(2):
-                for m in range(2):
+            for n in range(L):
+                for m in range(L):
                     for m_rot in range(M_rot):
                             for m_spin in range(2):
                                 c_new = self.GroupAction(c,n,m,m_rot,m_spin)
                                 i_new = self.c2i(c_new)
-                                #Equivalence_classes[i].append(i_new)                                                                       #changes 29 Jan; BUG?
-                                Equivalence_classes[c].append(i_new)
-                                mask[i_new] = False
+                                if i_new is not None:
+                                    #Equivalence_classes[i].append(i_new)                                                                       #changes 29 Jan; BUG?
+                                    Equivalence_classes[c].append(i_new)
+                                    mask[i_new] = False
+                                else:
+                                    print('mapping error?')
         self.symm_configs = self.reweight(Equivalence_classes)
         Reduced_number = len(self.symm_configs)
-        print('Total Number of configurations:',self.Nconfigs)
-        print('Reduced Number of configurations:',Reduced_number)
-        print('Gain:',self.Nconfigs/Reduced_number)
+        if self.verbose > 0:
+            print('Total Number of configurations:',self.Nconfigs)
+            print('Reduced Number of configurations:',Reduced_number)
+            print('Gain:',self.Nconfigs/Reduced_number)
         return Reduced_number
 
     @staticmethod
@@ -559,6 +636,18 @@ class chain_configs():
         Sz_fl = 0.5*(np.array(N_ups) - np.array(N_downs))
         return (nu,Sz_tot,N_fl,Sz_fl)
 
+    def electron_flag(self,c):
+        '''
+        Checks if a configuration has an allowed number of electrons
+
+        Input:
+            self.Nel_min(int):      The minimum (including) number of allowed electrons
+            self.Nel_max(int):      The maximum (including) number of allowed electrons
+            c()
+        '''
+
+        return
+
  #####################################   
 ####################################################################################################################################
 ####################################################################################################################################
@@ -639,6 +728,7 @@ class chains():
             basis(list):            A list of all states in the hilbert space spanned by the configuration
             length_basis(int):      The size of the HIlbert space
             Hamiltonians(list):     List of 6L**2 npcarray Hamiltonians to be combined into a full hamiltonian
+            ns(list):               A list of the occupation numbers of the basis of the configuration (will be same occupation for all )
         '''
         c = self.config
         L = self.L
@@ -660,6 +750,16 @@ class chains():
         self.basis = basis
         self.dim = len(basis)
         self.chain_hamiltonians = Hamiltonians
+        #########################################
+        #count occupation number of each basis element of the hilbert space
+        self.nstates = []
+        basis_dec = [int(el,2) for el in self.basis]
+        for m in range(self.dim):
+            s = basis_dec[m]
+            self.nstates.append(self.countBits(s))
+        #print('~'*100)
+        #print(self.nstates)
+        #print('~'*100)
         return 
     def chain_Hamiltonian(self,chain_basis):
         '''
@@ -757,7 +857,7 @@ class chains():
             for site in range(1,self.L**2+1): # keyyyyyyyy need to go all the way from 1 to L**2 not L**2 -1!!!!! BUG!!! 
                 occ_site = self.countBits(self.sites[site] & s)
                 occupations.append(occ_site)
-                H[m,m] += -mu*occ_site + U*occ_site**2 
+                H[m,m] += -mu*occ_site + 0.5*U*(occ_site-3)**2  #half filling is at \mu = (2,3)*U+(8,18)*V for rect & triangle respectively
             #n.n. electron repulsion
             H[m,m] += V*self.nn_repulsion(self.L,occupations)
         ###################
@@ -773,9 +873,9 @@ class chains():
 
         Returns:
             diag_states(dict):      A dictionary with keys: 'params':           Holds minimal system information such as configuration and weight of the configuration
-                                                            'eig_energies':     A 1xM array of dtype=float containing the eigenstates
-                                                            'occupations':      A 1xM array of dtype=int containing the occupation number of the eigenstates
-                                                            'eig_states':       A MxM array of dtype=complex containing the eigenstates. Its the main memory bottleneck by far
+                                                            'es':               A 1xM array of dtype=float containing the eigenstates
+                                                            'ns':      A 1xM array of dtype=int containing the occupation number of the eigenstates
+                                                            'vs':       A MxM array of dtype=complex containing the eigenstates. Its the main memory bottleneck by far
         '''
         #lanczos or full?
         H = self.configuration_Hamiltonian()
@@ -795,8 +895,9 @@ class chains():
             quit()
         diag_states = {}
         #diag_states['configuration'] = self.config
-        diag_states['energies'] = e
-        diag_states['states'] = v
+        diag_states['es'] = e
+        diag_states['vs'] = v
+        diag_states['ns'] = self.nstates 
         return diag_states
     @staticmethod
     def generate_partitions(L, N):
@@ -872,7 +973,7 @@ class chains():
         for i,occ1 in enumerate(occupations):
             for j,occ2 in enumerate(occupations):
                 if i < j:
-                    count += occ1*occ2
+                    count += (occ1-3)*(occ2-3) #hard-coded half-filling for trainglular lattice
         return count
     @staticmethod
     def binp(num, length=4):
@@ -946,12 +1047,13 @@ class correlations():
         Here,  i change the basis to the eigenbasis {|a>}. The exp. values only care about the diagonal elements:
         <a|N|a> = \sum_{i}ns[i]|a_i|**2
         '''
+        self.data_dict = input_dict
         #calculate max and min energies
-        Es_flat =  np.concatenate([sector_data['es'] for sector_data in input_dict.values()])
+        self.find_min_energy_keys()
+        Es_flat =  np.concatenate([sector_data['es'] for sector_data in self.data_dict.values()])
         self.Emin = np.min(Es_flat)
         self.Emax = np.max(Es_flat)
         print('Extremal energies:',self.Emin,self.Emax)
-        self.data_dict = input_dict
         #shifts energies
         for sector_data in self.data_dict.values():
             sector_data['es'] -= self.Emin
@@ -963,8 +1065,33 @@ class correlations():
             ns = sector_data['ns']
             vs = sector_data['vs']
             sector_data['ns'] = np.sum(ns * np.abs(vs) ** 2, axis=0)  # Sum over basis states
-            #sector_data['ns'] = np.einsum('ij,i,ij->j',vs,ns,vs.conj()) #are two methods equivalent?Should be. Check
+            sector_data['ns'] = np.einsum('ij,i,ij->j',vs,ns,vs.conj()) #are two methods equivalent?Should be. Check
+            #print('ns')
+            #print(sector_data['ns'])
+            #print('-'*100)
         return
+    def find_min_energy_keys(self):
+        """
+        Finds the minimum energy across all sectors and retrieves the keys where this energy is found.
+        Parameters:
+        data_dict (dict): Dictionary where keys label fundamental sectors, and each sector contains:
+                        - 'es': Mx1 array of eigenvalues (spectrum)
+        Returns:
+        tuple: (min_energy, list_of_keys)
+        """
+        # Extract all eigenvalues and their corresponding keys
+        min_energy = 1e10
+        min_keys = []
+        for key, sector_data in self.data_dict.items():
+            min_sector_energy = np.min(sector_data['es'])  # Find the min energy in this sector
+            if min_sector_energy < min_energy:
+                min_energy = min_sector_energy
+                min_keys = [key]  # Reset list with new minimum key
+            elif min_sector_energy == min_energy:
+                min_keys.append(key)  # Append if same minimum is found in another sector
+        self.GS_config = min_keys
+        print('Ground state configuration:',self.GS_config,' with energy',min_energy)
+        return 
     def partition_function(self,beta):
         '''
         Computes the partition function using logsumexp for numerical stability
@@ -987,6 +1114,25 @@ class correlations():
         log_terms = np.concatenate(log_terms)
         log_Z = logsumexp(log_terms)
         return log_Z
+    
+    def partition_function_fast(self, beta):
+        """
+        Computes the partition function using logsumexp for numerical stability,
+        leveraging NumPy vectorization to speed up calculations.
+        """
+        all_energies = []
+        all_weights = []
+        # Gather all energies and weights in bulk
+        for sector_data in self.data_dict.values():
+            all_energies.append(sector_data['es'])
+            all_weights.append(np.full_like(sector_data['es'], sector_data['weight']))
+        # Convert lists to NumPy arrays for fast computation
+        all_energies = np.concatenate(all_energies)
+        all_weights = np.concatenate(all_weights)
+        # Compute log partition function in one vectorized step
+        log_Z = logsumexp(np.log(all_weights) - beta * all_energies)
+        return np.exp(log_Z)
+    
     def H_moments(self,beta):
         '''
         Computes the <H> and <H^2> observables using logsumexp for numerical stability.
@@ -1011,7 +1157,10 @@ class correlations():
                                     - H_sq_avg (shifted)
                                     - H_sq_avg_unshifted (original energy scale
         '''
+        t0 = time.time()
         log_Z =  self.partition_function(beta)#changed pervious code so that it returns logsumexp() rather than its exponential
+        tf = time.time()
+        print('time to calculate log_Z:',np.round(tf-t0,2))
         log_terms_H = []
         log_terms_H_sq = []
         for sector_data in self.data_dict.values():
@@ -1035,6 +1184,7 @@ class correlations():
         H_sq_avg = np.exp(log_H_sq)
         H_sq_avg_unshifted = H_sq_avg +2*self.Emin*H_avg+self.Emin**2
         return H_avg,H_avg_unshifted,H_sq_avg,H_sq_avg_unshifted 
+    
     def N_moments(self, beta):
         """
         Computes the thermal expectation value <N> using logsumexp for numerical stability.
@@ -1075,6 +1225,163 @@ class correlations():
         log_N_sq = logsumexp(np.concatenate(log_terms_N_sq)) - log_Z
 
         return np.exp(log_N),np.exp(log_N_sq)
+    
+    @staticmethod
+    @njit
+    def fast_logsumexp(arr):
+        max_val = np.max(arr)
+        return max_val + np.log(np.sum(np.exp(arr - max_val)))
+
+    
+    def H_moments_fast(self, beta):
+        '''
+        Computes the <H> and <H^2> observables using logsumexp for numerical stability.
+        Takes care to filter out E=0 (GS) as their log is ill defined and they shouldn't contribute to shifted expectation values.
+        Optimized with numba
+        ------------------------------------------------------------------------------
+        Notes:
+            1) Filters out the ground state which has energy zero by definition (after shifting)
+            2) Just taking log(energies) wouldn't work for negative energies so 
+        ------------------------------------------------------------------------------
+        Parameters:
+        data_dict (dict):           Dictionary where keys label fundamental sectors, and each sector contains:
+                                    - 'weight': Number of symmetry-equivalent sectors
+                                    - 'es': Mx1 array of eigenvalues (spectrum)
+                                    - 'vs': MxM array of eigenvectors
+
+        beta (float):               Inverse temperature (1/kT).
+        
+        Returns:
+        (float, float, float, float): 
+                                    - H_avg (shifted)
+                                    - H_avg_unshifted (original energy scale)
+                                    - H_sq_avg (shifted)
+                                    - H_sq_avg_unshifted (original energy scale
+        '''
+        log_Z = self.partition_function_fast(beta)
+        all_energies = []
+        all_weights = []
+        # Gather all energies and weights efficiently
+        for sector_data in self.data_dict.values():
+            energies = sector_data['es']
+            weights = np.full_like(energies, sector_data['weight'])
+
+            # Filter out the ground state (E=0)
+            mask = energies > 0
+            if np.any(mask):
+                all_energies.append(energies[mask])
+                all_weights.append(weights[mask])
+
+        if all_energies:
+            all_energies = np.concatenate(all_energies)
+            all_weights = np.concatenate(all_weights)
+
+            # Compute log terms in a vectorized manner
+            log_H = np.log(all_weights) + np.log(all_energies) - beta * all_energies
+            log_H_sq = np.log(all_weights) + 2 * np.log(all_energies) - beta * all_energies
+
+            log_H_result = self.fast_logsumexp(log_H) - log_Z
+            log_H_sq_result = self.fast_logsumexp(log_H_sq) - log_Z
+
+            # Compute expectations
+            H_avg = np.exp(log_H_result)
+            H_sq_avg = np.exp(log_H_sq_result)
+
+            # Shifted energy values
+            H_avg_unshifted = H_avg + self.Emin
+            H_sq_avg_unshifted = H_sq_avg + 2 * self.Emin * H_avg + self.Emin**2
+
+            return H_avg, H_avg_unshifted, H_sq_avg, H_sq_avg_unshifted
+
+        return 0, self.Emin, 0, self.Emin**2  # Handle case with no valid energy values
+    
+    def N_moments_fast(self, beta):
+        """
+        Computes the thermal expectation value <N> and <N^2> using logsumexp for numerical stability.
+        Optimized for efficiency by using NumPy vectorization and Numba acceleration.
+        
+        Returns:
+            (float, float): <N>, <N^2>
+        """
+        log_Z = self.partition_function_fast(beta)  # Compute partition function
+
+        all_weights = []
+        all_N_a = []
+        all_N_a_sq = []
+        all_energies = []
+
+        # Collect data in vectorized form
+        for sector_data in self.data_dict.values():
+            weights = np.full_like(sector_data['es'], sector_data['weight'])
+            energies = sector_data['es']
+            N_a = sector_data['ns']  # Occupation numbers
+
+            # Filter out zero-occupation cases to prevent log(0) issues
+            valid_mask = N_a > 0
+            if np.any(valid_mask):
+                all_weights.append(weights[valid_mask])
+                all_energies.append(energies[valid_mask])
+                all_N_a.append(N_a[valid_mask])
+                all_N_a_sq.append(N_a[valid_mask] ** 2)
+
+        if all_N_a:
+            all_weights = np.concatenate(all_weights)
+            all_energies = np.concatenate(all_energies)
+            all_N_a = np.concatenate(all_N_a)
+            all_N_a_sq = np.concatenate(all_N_a_sq)
+
+            # Compute log terms using vectorized operations
+            log_N = np.log(all_weights) + np.log(all_N_a) - beta * all_energies
+            log_N_sq = np.log(all_weights) + np.log(all_N_a_sq) - beta * all_energies
+
+            log_N_result = self.fast_logsumexp(log_N) - log_Z
+            log_N_sq_result = self.fast_logsumexp(log_N_sq) - log_Z
+
+            return np.exp(log_N_result), np.exp(log_N_sq_result)
+
+        return 0, 0  # Handle case with no valid occupation values
+    
+    def plot_H_moments(self,betas,filenames):
+        '''
+        for a range of betas, plot the two moments vs T
+        '''
+        filename_H = filenames[0]
+        filename_H_sq = filenames[1]
+        PWD = '/mnt/users/kotssvasiliou/ED/figures/'
+        H_avg = np.zeros_like(betas)
+        H_avg_unshifted = np.zeros_like(betas)
+        H_sq_avg = np.zeros_like(betas)
+        H_sq_avg_unshifted = np.zeros_like(betas)
+        for i,beta in enumerate(betas):
+            if i%2 == 0 : print('at i,beta',i,beta,time.time())
+            H_avg[i],H_avg_unshifted[i],H_sq_avg[i],H_sq_avg_unshifted[i] = self.H_moments(beta)
+        plt.plot(1/betas,H_avg_unshifted,'b')
+        plt.savefig(PWD+filename_H+'.png')
+        plt.clf()
+        plt.plot(1/betas,(betas**2)*(H_sq_avg-H_avg**2),'r')
+        plt.plot(1/betas,(betas**2)*(H_sq_avg_unshifted-H_avg_unshifted**2),'b')
+        plt.savefig(PWD+filename_H_sq+'.png')
+        plt.clf()
+        return
+    def plot_N_moments(self,betas,filenames):
+        '''
+        for a range of betas, plot the two moments vs T
+        '''
+        filename_N = filenames[0]
+        filename_N_sq = filenames[1]
+        PWD = '/mnt/users/kotssvasiliou/ED/figures/'
+        N_avg = np.zeros_like(betas)
+        N_sq_avg = np.zeros_like(betas)
+        for i,beta in enumerate(betas):
+            N_avg[i],N_sq_avg[i] = self.N_moments(beta)
+        print(N_avg)
+        plt.plot(1/betas,N_avg,'green')
+        plt.savefig(PWD+filename_N+'.png')
+        plt.clf()
+        plt.plot(1/betas,(betas**2)*(N_sq_avg-N_avg**2),'r')
+        plt.savefig(PWD+filename_N_sq+'.png')
+        plt.clf()
+        return
 
 ####################################################################################################################################
 ####################################################################################################################################
@@ -1251,11 +1558,120 @@ def testclass():
     print('4)Tesing that symmetry-related configurations have same spectrum')
     test_symmetry_related_spectra()
     print('end of tests')   
+
+def test_mapping_proj():
+    ''''
+    Tests the config to index function
+    '''
+    print('=='*50)
+    print('=='*15,'Testing Config 2 index function after group action','=='*15)
+    print('=='*50)
+    itime = time.time()
+    L = 2
+    nu = 1
+    Nel_max = nu*L**2 + 1
+    Nel_min = nu*L**2 - 1
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':True,'Nel_max':Nel_max,'Nel_min':Nel_min}
+    CCs = chain_configs(section_params)
+    configs = CCs.configurations
+    for i,c in enumerate(configs):
+        for n in range(2):
+            for m in range(2):
+                for m_c3 in range(3):
+                        for m_spin in range(2):
+                            c_new = CCs.GroupAction(c,n,m,m_c3,m_spin)
+                            i_new = CCs.c2i(c_new)
+                            #checking:
+                            if c_new != configs[i_new]:
+                                print('error mapping')
+                                print(c_new,configs[i_new])
+                                quit()
+    ftime = time.time()
+    print('=='*50)
+    print('=='*40,'Success','=='*40)
+    print(f"mapping check elapsed time: {ftime-itime:.2f} seconds")
+    print('=='*50)
+    return
+def test_equivalent_sectors_proj():
+    '''
+    Tests the Equivalent sector generator
+    Specifically tests that the *sum_total* of the reduced configs equals the number of total configs
+    '''
+    print('*'*100)
+    L = 2
+    nu = 1
+    Nel_max = nu*L**2 + 1
+    Nel_min = nu*L**2 - 1
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':True,'Nel_max':Nel_max,'Nel_min':Nel_min}
+    CCs = chain_configs(section_params)
+    itime = time.time()
+    reduced_number = CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    ftime = time.time()
+    print(f"configuration reduction time: {ftime-itime:.2f} seconds")
+    sum_reduced = 0
+    sum_total = 0
+    for k in symmetric_configs.keys():
+        sum_reduced += 1
+        sum_total += symmetric_configs[k]
+    print('do reduced sectors agree?',sum_reduced,reduced_number)
+    print('do total sectors agree?',sum_total,CCs.Nconfigs)
+    print('*'*100)
+    return
+
+def mu_vs_N(section_params,H_params,delta_mu,N_mu):
+    '''
+    does <n> vs mu for a range of mu/Us
+    '''
+    U = H_params['H_params']['U']
+    mu_0 = 3*U
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+
+    delta_mus = np.linspace(-delta_mu,+delta_mu,N_mu)
+    betas = np.array([0.2,1,5])*U
+    N = np.zeros((delta_mus.shape[0],betas.shape[0]),dtype=float)
+    N_sq = N.copy()
+    for i,mu in enumerate(delta_mus):
+        #initialize where to store data for this mu
+        data_dict = {}
+        H_params['H_params']['mu'] = mu_0 + mu*U
+        for k in symmetric_configs.keys():
+            H_params['config'] = k
+            chain_instance = chains(H_params)
+            diag_states = chain_instance.diagonalization()
+            data_dict[k] = diag_states.copy()
+            data_dict[k]['weight'] = symmetric_configs[k]
+        corrs = correlations(data_dict)
+        for j,beta in enumerate(betas):
+            N[i,j],N_sq[i,j] = corrs.N_moments(beta)
+            N_sq[i,j] = (beta**2)*(N_sq[i,j] - N[i,j]**2)
+    Xaxis = mu_0/U + delta_mus
+    plt.plot(Xaxis,N[:,0],c='red')
+    plt.plot(Xaxis,N[:,1],c='green')
+    plt.plot(Xaxis,N[:,2],c='blue')
+    plt.plot(Xaxis,N_sq[:,0]/np.max(N_sq[:,0]),'--',c='red',alpha=0.5)
+    plt.plot(Xaxis,N_sq[:,1]/np.max(N_sq[:,1]),'--',c='green',alpha=0.5)
+    plt.plot(Xaxis,N_sq[:,2]/np.max(N_sq[:,2]),'--',c='blue',alpha=0.5)
+    plt.xlabel('$\mu/U$')
+    plt.ylabel('$\\langle \hat{N} \\rangle$')
+    plt.plot(30 + Xaxis,Xaxis,c='k',label='$\\langle \hat{N} \\rangle$')
+    plt.plot(30+ Xaxis,Xaxis,'--',c='k',label='$\\chi_c$')
+    plt.xlim([np.min(Xaxis),np.max(Xaxis)])
+    plt.yticks([0,1,2,3,4,5,6])
+    plt.ylim([-0.2,6.2])
+    plt.legend()
+    plt.savefig('/mnt/users/kotssvasiliou/ED/figures/1_site_n_vs_mu.png',dpi=1000)
+    plt.clf()
+    return
+        
 def exe1():
     '''
     Diagonalize full system and store everything in dictionary. check memory of dictionary...
     '''
-    L = 2;t = 1;U = 10;V = 2;mu = 1;loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    L = 2;t = 1;U = 6;V = 1;loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    mu = 3*U+18*V
     print('executing....')
     print('Step1:Generate Configurations')
     section_params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
@@ -1274,7 +1690,7 @@ def exe1():
         chain_instance = chains(H_params)
         diag_states = chain_instance.diagonalization()
         data_dict[k] = diag_states.copy()
-        data_dict[k]['weights'] = symmetric_configs[k]
+        data_dict[k]['weight'] = symmetric_configs[k]
         count +=1
         states += symmetric_configs[k]*chain_instance.dim
         if count%1000 == 0:
@@ -1290,10 +1706,256 @@ def exe1():
         size_mb = sys.getsizeof(obj) / (1024 * 1024)
         print(f"{name}: {size_mb:.6f} MBs")
     print('-'*100)
-    Es_flat =  np.concatenate([sector_data['energies'] for sector_data in data_dict.values()])
-    Emin = np.min(Es_flat)
-    Emax = np.max(Es_flat)
-    print('Extremal energies:',Emin,Emax)
+    ##################
+    print('Calculating thermodynamic averages')
+    corrs = correlations(data_dict)
+    time1 = time.time()
+    corrs.partition_function(beta=1.)
+    time2 = time.time()
+    corrs.partition_function_fast(beta=1.)
+    time3 = time.time()
+    print('time difference',time2-time1)
+    print('time difference',time3-time2)
+    
+    quit()
+    betas = np.array(list(np.linspace(0.1,1,100))+list(np.linspace(1,20,100)))
+    print('plotting?')
+    corrs.plot_H_moments(betas,['energy','energy_susc'])
+    return
+def exe2():
+    '''
+    Diagonalize full system and store everything in dictionary. check memory of dictionary...
+    '''
+    L = 1;t = 0;U = 10;V = 0;loc = [1,1,1,1,1,1]
+    mu = 3*U
+    print('executing....',L)
+    print('Step1:Generate Configurations')
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    count = 0
+    states = 0
+    dimH = 64**(L**2) # for triangular case
+    data_dict = {}
+    itime = time.time()
+    print('Step2:Diagonalizing')
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weight'] = symmetric_configs[k]
+        count +=1
+        states += symmetric_configs[k]*chain_instance.dim
+        print(f"Progress: {100*(states/dimH):.2f} %")   
+        print(f"Time elapsed:{(time.time()-itime)/60:.2f} minutes")
+        print('*'*100)
+    print('ED ENDED')
+    print('Calculating thermodynamic averages')
+    corrs = correlations(data_dict)
+    betas = np.array(list(np.linspace(0.01,1,100))+list(np.linspace(1,20,100)))
+    corrs.plot_H_moments(betas,['energy','energy_susc'])
+    corrs.plot_N_moments(betas,['n','n_susc'])
+    return
+def exe3():
+    L = 1;t = 0;U = 5;V = 0;loc = [1,1,1,1,1,1]
+    print('executing....',L)
+    print('Step1:Generate Configurations')
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    delta_mu = 4
+    N_mu = 200
+    mu_vs_N(section_params,H_params,delta_mu,N_mu)
+
+
+def speed_comparison():
+    '''
+    tests numba and non-numba implementation
+    '''
+    L = 2;t = 1;U = 6;V = 1
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    mu = 0 #half-filling; for 1electron per site, mu=-3U and for two, mu=-1.5U
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    H_params['H_params']['mu'] = mu
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    data_dict = {} # ED data
+    itime = time.time()
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weight'] = symmetric_configs[k]
+    ftime = time.time()
+    print('*'*50)
+    print('Calculating thermodynamic averages')
+    print('*'*50)
+    corrs = correlations(data_dict)
+    betas = np.array([20])
+    #N_data = np.zeros((2,betas.shape[0]),dtype=float)
+    #E_data = np.zeros((2,betas.shape[0]),dtype=float)
+    #Z_data = np.zeros_like(betas)
+    for i,beta in enumerate(betas):
+        print('beta',beta)
+        #slow
+        itime = time.time()
+        Z1 = corrs.partition_function(beta)
+        E1,a,E1_sq,b = corrs.H_moments(beta)
+        N1,N1_sq = corrs.N_moments(beta)
+        ftime = time.time()
+        print('slow calc time',ftime-itime)
+        #fast
+        itime = time.time()
+        Z2 = corrs.partition_function_fast(beta)
+        E2,a,E2_sq,b = corrs.H_moments_fast(beta)
+        N2,N2_sq = corrs.N_moments_fast(beta)
+        ftime = time.time()
+        print('fast calc time',ftime-itime)
+        print(Z1,Z2)
+        print(E1,E2)
+        print(E1_sq,E2_sq)
+        print(N1,N2)
+        print(N1_sq,N2_sq)
+        print('*'*100)
+    return
+def boltzman_weight_ratio():
+    '''
+    Calculates the partition function and 
+    '''
+    return
+def ED_exe(target_dir,beta_min,beta_max,total):
+    '''
+    This is a single ED run.
+
+    Diagonalizes the system for a single point in parameter space and then caluclates the correlation fucntions, if the flag is up.
+
+    Input:
+        target_dict(str):       The name of the output dictionary
+        beta_min(int):          Minimum inverse temperature in units of 1/t
+        beta_max(int):          Maximum inverse temperature in units of 1/t
+        total(int):             An index characterizing the total number beta points to sample
+    Output:
+        dict_out(dict):         A dictionary with key i and inside it another dictionary with keys:
+                                >> 'pars' (Hamiltonian params)
+                                >> 'N'
+                                >> 'N_sq'
+                                >> 'H'
+                                >> 'H_sq'
+                                where each key is a Nx1 array, where N = total
+    '''
+    L = 2;t = 1;U = 6;V = 1
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    #L = 1;t = 1;U = 6;V = 0
+    #loc = [1,1,1,1,1,1]
+    #mu = 0 #half-filling; for 1electron per site, mu=-3U and for two, mu=-1.5U
+    mu = 0
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    H_params['H_params']['mu'] = mu
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    data_dict = {} # ED data
+    itime = time.time()
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weight'] = symmetric_configs[k]
+    ftime = time.time()
+    print('*'*50)
+    print('Calculating thermodynamic averages')
+    print('*'*50)
+    corrs = correlations(data_dict)
+    #betas = np.linspace(beta_min,beta_max,num=total)*(1./t)
+    betas = np.geomspace(beta_min,beta_max,num=total)*(1./t)
+
+    N_data = np.zeros((2,betas.shape[0]),dtype=float)
+    E_data = np.zeros((2,betas.shape[0]),dtype=float)
+    Z_data = np.zeros_like(betas)
+    for i,beta in enumerate(betas):
+        itime = time.time()
+        if i%2 == 0:
+            ftime = time.time()
+            print('Calulating quantities at beta=',beta)
+            print('time taken since last step:',ftime-itime)
+        Z_data[i] = corrs.partition_function_fast(beta)
+        E_data[0,i],a,E_data[1,i],b = corrs.H_moments(beta)
+        N_data[0,i],N_data[1,i] = corrs.N_moments(beta)
+    #######################################################
+    dict_out = {}
+    dict_out['params'] = H_params
+    dict_out['betas'] = betas
+    dict_out['Zs'] = Z_data
+    dict_out['Es'] = E_data
+    dict_out['Ns'] = N_data
+    #######################################################
+    output_file = os.path.join(target_dir,"data.pkl")
+    with open(output_file, 'wb') as f:
+        pickle.dump(dict_out, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return
+def exe_multirun_ED(target_dir,index,total):
+    '''
+    This is a single run, performing ED for a single point in parameter space and then calculating the correlation functions 
+    '''
+    L = 2;t = 1;U = 6;V = 1#;loc = [1,1,1,1,1,1]#
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    mu = -5*U+10*U*(1.*index/total)
+    print('*'*50)
+    print('Step1:Generate Configurations; Index',str(index))
+    print('*'*50)
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    H_params['H_params']['mu'] = mu
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    data_dict = {}
+    itime = time.time()
+    print('*'*50)
+    print('Step2:Diagonalizing; Index',str(index))
+    print('*'*50)
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weight'] = symmetric_configs[k]
+    ftime = time.time()
+    print('*'*50)
+    print(f"Diagonalization Time elapsed:{(ftime-itime)/60:.2f} minutes")
+    print('Step3:Calculating thermodynamic averages; Index',str(index))
+    print('*'*50)
+    corrs = correlations(data_dict)
+    betas = np.array([0.2,1,5])*H_params['H_params']['U']
+    data_out = np.zeros((2,betas.shape[0]),dtype=float)
+    for i,beta in enumerate(betas):
+        data_out[0,i],data_out[1,i] = corrs.N_moments(beta)
+    ########################################################
+    # Save each process's output in a separate pickle file
+    output_file = os.path.join(target_dir, f"data_{index}.pkl")
+    with open(output_file, 'wb') as f:
+        pickle.dump({index: data_out}, f, protocol=pickle.HIGHEST_PROTOCOL)
+    ############
+    #existing_data = {}
+    #if os.path.exists(target_file):
+    #    try:
+    #        with open(target_file, 'rb') as f:
+    #            existing_data = pickle.load(f)
+    #        if not isinstance(existing_data, dict):
+    #            raise ValueError("Pickle file does not contain a dictionary.")
+    #    except (EOFError, pickle.UnpicklingError):
+    #        print("Warning: Pickle file is empty or corrupted, starting fresh.")
+    #existing_data[index] = data_out
+    # Save back to the pickle file
+    #with open(target_file, 'wb') as f:
+    #    pickle.dump(existing_data, f, protocol=pickle.HIGHEST_PROTOCOL)
     return
 #########################################################
 ########incorporated into chain_configs class###############
@@ -1777,13 +2439,42 @@ def generate_partitions(L, N):
 ####################################################################################################################################
 ####################################################################################################################################
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("test", type=str, choices=["no_test","testclass"], help="test to run")
-    parser.add_argument("execute", type=str, choices=["no_exe","exe1"], help="execute ting")
+    #test_mapping()
+    #test_projection()
+    test_mapping_proj()
+    test_equivalent_sectors_proj()
 
-    args = parser.parse_args()
 
-    if args.test == "testclass":
-        testclass()
-    if args.execute == "exe1":
-        exe1()
+    quit()
+    # Extract command and argument
+    command = sys.argv[1]
+    argument1 = float(sys.argv[2])
+    argument2 = float(sys.argv[3])
+    argument3 = int(sys.argv[4])
+
+    # Execute the requested function
+    target_file = '/mnt/users/kotssvasiliou/ED/multirun/data.pkl'
+    target_dir = '/mnt/users/kotssvasiliou/ED/RUNS/L_2_half_filling'
+    if command == "exe_multirun_ED":
+        exe_multirun_ED(target_dir,argument1,argument2)
+    elif command == 'ED_exe':
+        ED_exe(target_dir,argument1,argument2,argument3)
+    else:
+        print(f"Unknown command: {command}")
+        sys.exit(1)
+    quit()
+    
+    #parser = argparse.ArgumentParser(description="Test multiple features.")
+    #parser.add_argument("test", type=str, choices=["no_test","testclass"], help="test to run")
+    #parser.add_argument("execute", type=str, choices=["no_exe","exe1","exe2","exe3"], help="execute ting")
+
+    #args = parser.parse_args()
+
+    #if args.test == "testclass":
+    #    testclass()
+    #if args.execute == "exe1":
+    #    exe1()
+    #if args.execute == "exe2":
+    #    exe2()
+    #if args.execute == "exe3":
+    #    exe3()
