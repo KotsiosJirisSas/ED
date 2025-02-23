@@ -8,6 +8,7 @@ import pickle
 import argparse
 from itertools import product
 from math import comb,log10
+from scipy.special import logsumexp
 '''
 
 
@@ -284,7 +285,7 @@ def EDFullSpectrum(pars):
                 GSSector      = (n_up,n_down)
                 GSEigenvector = v[:,lam.argmin()]    
     #print("Energies assembled!")
-    #print("Lowest energy:",lowestEnergy)
+    print("Lowest energy:",lowestEnergy)
     print("The ground state occured in (n_up,n_down)=",GSSector)
     return (lowestEnergy,GSSector,energies,eigenstates,eigenoccupation)
 ################################
@@ -445,28 +446,13 @@ def sparsity(X):
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
-#############################################  MULTIPLE CHAINS #####################################################################
+#############################################  MULTIPLE CHAIN COMBINATORICS ########################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
-'''
-I want to create multiple chains  and create the tensor product of the sparse Hamiltonian. 
-At first this will be non-interacting chains with just hoppings
-1st step: Enumerate all possible sections with given total N_up,N_down sections and do some histogram of their sizes
-2nd step: how to tensor product sparse matrices?
-
-To do:
-Fix total filling and enumerate all possible chain configs. Plot hisogram of their sizes
-Expect: largest section is fully symmetric one.
-Then the next step is to construct bases and diagonalize
-'''
-
-################################
-########  Combinatorics ########
-################################
 def partitions(value,parts,max):
     """
     Generates all way to partition a *value* into *parts* of non-negative integers.
@@ -762,6 +748,17 @@ def partition_function(es,beta,emin=0):
             #Z += np.exp(-beta*sec[state])
             Z += np.exp(-beta * (sec[state] - emin))*np.exp(-beta * emin)
     return Z
+def partition_function_fast(es,beta):
+    '''
+    given a list of arrays for the energies in each sector, calculate the partition function at thempeature 1/beta
+    '''
+    Z = 0
+    all_energies = []
+    for sec in range(len(es)):
+        all_energies.append(es[sec])
+    all_energies = np.concatenate(all_energies)
+    log_Z = logsumexp(- beta * all_energies)
+    return np.exp(log_Z)
 def energy(es,beta,emin=0):
     '''
     given a list of arrays for the energies in each sector, calculate the <H>  and <H^2>at tempeature 1/beta
@@ -1137,6 +1134,30 @@ def feature9():
     plt.legend()
     plt.savefig('/mnt/users/kotssvasiliou/ED/utils/1d_chain_figures/N_vs_mu.png')
     return
+def feature10():
+    pars = {}
+    L = 6
+    U = 4
+    pars['L'] = L
+    pars['int'] = U
+    pars['hop'] = 1
+    pars['mu'] = U/2
+    pars['sign'] = True
+    pars['Electrons_up'] = 4
+    pars['Electrons_down'] = 4
+    timei = time.time()
+    #H,nstates = ham_symm_full(pars)
+    (lowestEnergy,GSSector,energies,eigenstates,eigenoccupation) = EDFullSpectrum(pars)
+    Z1 = partition_function_fast(energies,beta=4)
+    Z2 = partition_function(energies,4,lowestEnergy)
+    eee = energy(energies,4,lowestEnergy)
+    print(eee)
+    print(Z1,Z2)
+    print(eee[0]/Z1,eee[0]/Z2)
+    #print(timef-timei)
+    #plt.imshow(H,cmap='coolwarm')
+    #plt.colorbar()
+    #plt.savefig('hamiltonian_old.png')
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -1151,7 +1172,7 @@ def feature9():
 ####################################################################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test multiple features.")
-    parser.add_argument("feature", type=str, choices=["feature1", "feature2","feature3","feature4","feature5", "feature6","feature7","feature8","feature9"], help="Feature to run")
+    parser.add_argument("feature", type=str, choices=["feature1", "feature2","feature3","feature4","feature5", "feature6","feature7","feature8","feature9","feature10"], help="Feature to run")
 
     args = parser.parse_args()
 
@@ -1173,5 +1194,7 @@ if __name__ == "__main__":
         feature8()
     elif args.feature == "feature9":
         feature9()
+    elif args.feature == "feature10":
+        feature10()
 
 

@@ -1,0 +1,242 @@
+=========================================================
+Job submitted date = Fri 31 Jan 12:45:38 GMT 2025
+4 nodes ( 2 processes per node )
+4 hosts used: comp[15,18,54,78]
+Job output begins
+-----------------
+
+I am child process 2, waiting for commands.
+I am child process 3, waiting for commands.
+I am child process 4, waiting for commands.
+Using default params.txt parameter file. You can specify another by giving it as an argument to multirun.
+I am child process 5, waiting for commands.
+I am child process 7, waiting for commands.
+I am child process 1, waiting for commands.
+I am child process 6, waiting for commands.
+I am child process 8, waiting for commands.
+There are 10 commands to be run.
+Sending process 1 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 1 10'
+Processor 1 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 1 10'
+Sending process 2 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 2 10'
+Processor 2 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 2 10'
+Sending process 3 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 3 10'
+Processor 3 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 3 10'
+Sending process 4 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 4 10'
+Processor 4 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 4 10'
+Sending process 5 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 5 10'
+Processor 5 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 5 10'
+I am child process 9, waiting for commands.
+Sending process 6 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 6 10'
+Processor 6 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 6 10'
+Sending process 7 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 7 10'
+Processor 7 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 7 10'
+Sending process 8 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 8 10'
+Processor 8 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 8 10'
+Sending process 9 work: 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 9 10'
+Processor 9 has started running  'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 9 10'
+Master is running command 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 10 10'
+**************************************************
+Step1:Generate Configurations; Index 3
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 4
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 2
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 10
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 1
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 8
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 9
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 6
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 7
+**************************************************
+**************************************************
+Step1:Generate Configurations; Index 5
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 9
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 8
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 6
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 7
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 5
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 3
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 2
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 4
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 1
+**************************************************
+Total Number of configurations: 531441
+Reduced Number of configurations: 23115
+Gain: 22.991174561972745
+**************************************************
+Step2:Diagonalizing; Index 10
+**************************************************
+**************************************************
+Diagonalization Time elapsed:10.13 minutes
+Step3:Calculating thermodynamic averages; Index 9
+**************************************************
+Ground state configuration: [((2, 2, 2, 2, 2, 2), (2, 2, 2, 2, 2, 2))]  with energy -583.1999999999999
+Extremal energies: -583.1999999999999 108.0
+after rescaling,Extremal energies: 0.0 691.1999999999999
+Processor 9 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 9 10'. It took 10.7 minutes.
+I am child process 9, waiting for commands.
+Message said process 9 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 9 10'
+**************************************************
+Diagonalization Time elapsed:10.26 minutes
+Step3:Calculating thermodynamic averages; Index 8
+**************************************************
+Ground state configuration: [((2, 2, 2, 2, 2, 2), (2, 2, 2, 2, 2, 2))]  with energy -410.4000000000001
+Extremal energies: -410.4000000000001 108.0
+after rescaling,Extremal energies: 0.0 518.4000000000001
+Processor 8 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 8 10'. It took 10.7 minutes.
+I am child process 8, waiting for commands.
+Message said process 8 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 8 10'
+**************************************************
+Diagonalization Time elapsed:11.41 minutes
+Step3:Calculating thermodynamic averages; Index 7
+**************************************************
+Ground state configuration: [((1, 2, 1, 2, 1, 2), (2, 2, 2, 2, 2, 2)), ((1, 2, 1, 2, 2, 2), (2, 2, 2, 2, 1, 2))]  with energy -241.40526868208136
+Extremal energies: -241.40526868208136 108.0
+after rescaling,Extremal energies: 0.0 349.4052686820813
+**************************************************
+Diagonalization Time elapsed:11.44 minutes
+Step3:Calculating thermodynamic averages; Index 5
+**************************************************
+Ground state configuration: [((1, 1, 1, 1, 1, 1), (1, 1, 1, 1, 1, 1))]  with energy -4.5515344418174735
+Extremal energies: -4.5515344418174735 108.26657597728241
+after rescaling,Extremal energies: 0.0 112.8181104190999
+Processor 7 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 7 10'. It took 10.7 minutes.
+I am child process 7, waiting for commands.
+Message said process 7 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 7 10'
+Processor 5 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 5 10'. It took 10.7 minutes.
+I am child process 5, waiting for commands.
+Message said process 5 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 5 10'
+**************************************************
+Diagonalization Time elapsed:12.05 minutes
+Step3:Calculating thermodynamic averages; Index 6
+**************************************************
+Ground state configuration: [((1, 1, 1, 1, 2, 2), (1, 1, 1, 1, 2, 2))]  with energy -105.7762137319979
+Extremal energies: -105.7762137319979 108.0
+after rescaling,Extremal energies: 0.0 213.7762137319979
+Processor 6 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 6 10'. It took 12.8 minutes.
+I am child process 6, waiting for commands.
+Message said process 6 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 6 10'
+**************************************************
+Diagonalization Time elapsed:18.92 minutes
+Step3:Calculating thermodynamic averages; Index 3
+**************************************************
+Ground state configuration: [((0, 0, 0, 0, 0, 0), (0, 1, 0, 1, 1, 0)), ((0, 0, 0, 0, 0, 1), (0, 1, 1, 0, 0, 0))]  with energy 104.19473131791864
+Extremal energies: 104.19473131791864 453.6
+after rescaling,Extremal energies: 0.0 349.4052686820814
+Processor 3 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 3 10'. It took 19.2 minutes.
+I am child process 3, waiting for commands.
+Message said process 3 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 3 10'
+**************************************************
+Diagonalization Time elapsed:20.06 minutes
+Step3:Calculating thermodynamic averages; Index 4
+**************************************************
+Ground state configuration: [((0, 0, 1, 1, 1, 1), (0, 0, 1, 1, 1, 1))]  with energy 67.02378626800196
+Extremal energies: 67.02378626800196 280.79999999999995
+after rescaling,Extremal energies: 0.0 213.77621373199798
+**************************************************
+Diagonalization Time elapsed:20.07 minutes
+Step3:Calculating thermodynamic averages; Index 2
+**************************************************
+Ground state configuration: [((0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0))]  with energy 108.0
+Extremal energies: 108.0 626.4000000000001
+after rescaling,Extremal energies: 0.0 518.4000000000001
+Processor 4 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 4 10'. It took 21.3 minutes.
+I am child process 4, waiting for commands.
+Message said process 4 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 4 10'
+Processor 2 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 2 10'. It took 21.3 minutes.
+I am child process 2, waiting for commands.
+Message said process 2 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 2 10'
+**************************************************
+Diagonalization Time elapsed:20.83 minutes
+Step3:Calculating thermodynamic averages; Index 10
+**************************************************
+Ground state configuration: [((2, 2, 2, 2, 2, 2), (2, 2, 2, 2, 2, 2))]  with energy -756.0
+Extremal energies: -756.0 108.0
+after rescaling,Extremal energies: 0.0 864.0
+Processor 0 (master) has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 10 10'. It took 21.3 minutes.
+Master has finished running the command.
+**************************************************
+Diagonalization Time elapsed:21.20 minutes
+Step3:Calculating thermodynamic averages; Index 1
+**************************************************
+Ground state configuration: [((0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0))]  with energy 108.0
+Extremal energies: 108.0 799.2
+after rescaling,Extremal energies: 0.0 691.2
+Processor 1 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 1 10'. It took 21.3 minutes.
+I am child process 1, waiting for commands.
+Message said process 1 has finished running 'python /mnt/users/kotssvasiliou/ED/utils/chain_sections.py exe_multirun_ED 1 10'
+Master process telling the children to stop - 0, 0.
+Process 1 - time to stop.
+Process 3 - time to stop.
+Process 4 - time to stop.
+Process 2 - time to stop.
+Process 8 - time to stop.
+Process 6 - time to stop.
+Process 9 - time to stop.
+Process 7 - time to stop.
+Process 5 - time to stop.
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Fri 31 Jan 13:07:20 GMT 2025
+Total run time : 0 Hours 21 Minutes 38 Seconds
+=========================================================

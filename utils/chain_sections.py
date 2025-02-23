@@ -1493,7 +1493,7 @@ def test_equivalent_sectors():
     '''
     print('*'*100)
     L = 2
-    params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
+    params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
     CCs = chain_configs(params)
     itime = time.time()
     reduced_number = CCs.configuration_reduction()
@@ -1505,9 +1505,11 @@ def test_equivalent_sectors():
     for k in symmetric_configs.keys():
         sum_reduced += 1
         sum_total += symmetric_configs[k]
+    #print(symmetric_configs)
     print('do reduced sectors agree?',sum_reduced,reduced_number)
     print('do total sectors agree?',sum_total,CCs.Nconfigs)
     print('*'*100)
+    print(symmetric_configs.values())
     return
 def test_symmetry_related_spectra():
     '''
@@ -1828,6 +1830,31 @@ def boltzman_weight_ratio():
     Calculates the partition function and 
     '''
     return
+def GS_energy(t,U,V):
+    '''
+    just does ED and prints out the ground state energy
+    '''
+    L = 2
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    mu = 0
+    section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    H_params['H_params']['mu'] = mu
+    CCs = chain_configs(params=section_params)
+    CCs.configuration_reduction()
+    symmetric_configs = CCs.symm_configs
+    data_dict = {} # ED data
+    itime = time.time()
+    for k in symmetric_configs.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        data_dict[k] = diag_states.copy()
+        data_dict[k]['weight'] = symmetric_configs[k]
+    ftime = time.time()
+    corrs = correlations(data_dict)
+    return
+
 def ED_exe(target_dir,beta_min,beta_max,total):
     '''
     This is a single ED run.
@@ -1956,6 +1983,67 @@ def exe_multirun_ED(target_dir,index,total):
     # Save back to the pickle file
     #with open(target_file, 'wb') as f:
     #    pickle.dump(existing_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return
+
+def exe_check_symmetry_related_configs(repeats = 10):
+    '''
+    this checks that for a randomly chosen configuration, all configs related by the action of a symmetry have the same spectra and eigenstates
+    '''
+    print('*'*100)
+    print('CHECKING EQUIVALENCE IN SPECTRA FOR SYMMETRY RELATED CONFIGURATIONS')
+    print('*'*100)
+    L = 2
+    t = 1
+    U = 6
+    V = 1
+    mu = 0
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    params = {'geometry':'triangular','L':2,'partial':False,'projection':False}
+    CCs = chain_configs(params)
+    for repeat in range(int(repeats)):
+        c = CCs.configurations[random.randint(0, len(CCs.configurations)-1)]
+        print('randomly chosen config',repeat,':',c)
+        Es = []
+        Vs = []
+        Hs = []
+        for n in range(2):#max=2
+            for m in range(2):#max=2
+                for m_rot in range(2):#max=3
+                    for m_spin in range(2):
+                        c_new = CCs.GroupAction(c,n,m,m_rot,m_spin)
+                        H_params = {'L':L,'loc':loc,'config':c_new,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+                        chain_instance = chains(H_params)
+                        diag_states = chain_instance.diagonalization()
+                        H = chain_instance.configuration_Hamiltonian()
+                        Hs.append(H.toarray())
+                        Es.append(diag_states['es'])
+                        Vs.append(diag_states['vs'])
+        for i in range(len(Vs)):
+            if not np.allclose(np.abs(Vs[0]),np.abs(Vs[i])):
+                if Vs[0].shape[0] < 10 and Vs[0].shape[0] >4:
+                    for k in range(Vs[0].shape[0]):
+                        print(Es[i][k],Es[0][k])
+                        print(Vs[0][:,k])
+                        print(Vs[i][:,k])
+                    quit()
+            #print(Hs[0])
+            #print(np.allclose(Hs[0],Hs[i]))
+            #print(np.allclose(Es[0],Es[i]))
+            #print(np.abs(Vs[0])-np.abs(Vs[i]))
+            #print(np.allclose(np.abs(Vs[0]),np.abs(Vs[i])))
+        #diff_en = 0
+        #for i in range(len(Es)):
+        #    for j in range(len(Es)):
+        #        diff_en += np.sum(np.abs(Es[i] - Es[j]))
+        #diff_vs = 0
+        #for i in range(len(Es)):
+        #    for j in range(len(Es)):
+        #        diff_vs += np.sum(np.abs(Vs[i]) - np.abs(Vs[j]))
+
+        #if diff_en >1e-8:
+        #    print('uhhhhhhh')
+        #print('Do configurations related by symmetry have identical spectra?',str(diff_en),str(diff_vs))
+        #print('~'*100)
     return
 #########################################################
 ########incorporated into chain_configs class###############
@@ -2441,16 +2529,16 @@ def generate_partitions(L, N):
 if __name__ == "__main__":
     #test_mapping()
     #test_projection()
-    test_mapping_proj()
-    test_equivalent_sectors_proj()
+    #test_mapping_proj()
+    #test_equivalent_sectors_proj()
 
-
+    test_equivalent_sectors()
     quit()
     # Extract command and argument
     command = sys.argv[1]
     argument1 = float(sys.argv[2])
     argument2 = float(sys.argv[3])
-    argument3 = int(sys.argv[4])
+    argument3 = float(sys.argv[4])
 
     # Execute the requested function
     target_file = '/mnt/users/kotssvasiliou/ED/multirun/data.pkl'
@@ -2459,6 +2547,10 @@ if __name__ == "__main__":
         exe_multirun_ED(target_dir,argument1,argument2)
     elif command == 'ED_exe':
         ED_exe(target_dir,argument1,argument2,argument3)
+    elif command == 'GS_energy':
+        GS_energy(t=argument1,U=argument2,V=argument3)
+    elif command == 'tests':
+        exe_check_symmetry_related_configs(repeats=argument1)
     else:
         print(f"Unknown command: {command}")
         sys.exit(1)
