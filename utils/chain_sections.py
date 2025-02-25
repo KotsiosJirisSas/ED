@@ -966,7 +966,7 @@ class chains():
         calculates n.n. repulsion for L=2 where all sites are nn with all others
         '''
         if length != 2:
-            print('n.n. interaction not implemented for L >2')
+            print('n.n. interaction not implemented for L != 2')
             return 0
             #quit()
         count = 0
@@ -1013,6 +1013,54 @@ class chains():
         # Count the number of '1's in the segment between the flipped positions
         ones_count = between_segment.count('1')
         return (-1)**ones_count
+
+    #################################
+    def location_mapping(self):
+        """
+        Maps each tuple (j, eta, s) to the corresponding x'th binary place in self.loc.
+        self.loc is a list/array of length 6*L**2 
+        """
+        loc = self.loc
+        L = self.L
+        mapping = {}
+        for eta in range(3): #edit for square
+            for s in range(2):
+                for j in range(1,L**2+1):
+                    # Only consider indices in the current eta block.
+                    start = eta * 2 * L**2
+                    end = (eta + 1) * 2 * L**2
+                    # Find the first index in the block with the correct parity and j value.
+                    for i in range(start, end):
+                        if ((i // L) % 2 == s) and (loc[i] == j):
+                            mapping[(j, eta, s)] = i
+                            break
+                    else:
+                        raise ValueError(f"No index found for (j={j}, eta={eta}, s={s})")
+        self.map = mapping
+        return mapping
+
+    def creation_operator(self,j,eta,s,I):
+        '''
+        Act with c^{\dagger}_{j,\eta,s} on decimal state I.
+
+        Output:
+            J(dec):     The corresponding decimal state we get, or None
+            sgn(\pm 1): The sign based on the overall ordering of the state
+        
+        **********
+        need upgrading for square case
+        ***********
+        '''
+        bin_length = len(self.loc)
+        x = self.map[(j,eta,s)]
+        if (I >> x) & 1:  # If site j is already occupied, return None
+            return None, None
+        J = I | (1 << x)
+        # Compute sign factor (count fermions to the left)
+        #forget about sign for now
+        sign = (-1) **(self.binp(I & ((1 << x) - 1),length=bin_length).count('1'))
+        return J, sign
+
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
