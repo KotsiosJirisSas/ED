@@ -289,6 +289,37 @@ def load_configs(path):
     with open(path,'rb') as f:
         data = pickle.load(f)
     return data
+def test():
+    '''
+    does some sanity checks on the configurations:
+    1)check that they sum up to the correct number of sectors
+    2) CHeck spectra of symmetry related configs match agfter permuting!
+    '''
+    DATA = load_configs('configs/triangle_2_full.pkl')
+    L = 2
+    t = 1
+    U = 6
+    V = 0
+    mu = 0
+    loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    ################################
+    Es = []
+    Vs = []
+    config = ((0,0,0,0,0,1),(0,0,0,1,0,0))
+    weight = len(DATA[config][0])
+    for s in range(weight):
+        config_s,perm_s = DATA[config][0][s],DATA[config][1][s]
+        print(s,':',config_s,perm_s,reindex_permutation(perm_s))
+        H_params['config'] = config_s
+        chain_instance = chains(H_params)
+        diag_states = chain_instance.diagonalization()
+        Es.append(diag_states['es'])
+        Vs.append(diag_states['vs'])
+        print('eig',diag_states['vs'][:,0])
+        print('basis',chain_instance.basis)
+        #print(chain_instance.configuration_Hamiltonian())
+
 
 def test_configurations(repeats = 1):
     '''
@@ -376,6 +407,9 @@ def test_spectra(repeats=1):
         config = random.choice(list(DATA.keys()))
         H_params['config'] = config
         chain_instance = chains(H_params)
+        if chain_instance.dim > 4:
+            continue
+        print(chain_instance.dim)
         diag_states = chain_instance.diagonalization()
         print(config,DATA[config][1],len(DATA[config][1]))
 
@@ -420,12 +454,177 @@ def c2i(c,perm):
             basis = [old + new for old in basis for new in basis_up]
             basis = [old + new for old in basis for new in basis_down]
     return basis
+
+#######
+def string_to_config(string,L):
+    ''''
+    given a string brings out the configuration (symm. sector) it lies in
+    '''
+    segment_length = L
+    num_segments = len(string) // segment_length
+    mapping = [0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 5, 11]
+    mapping_inv = [0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11]
+    config = [string[i*segment_length:(i+1)*segment_length].count('1') for i in range(num_segments)]
+    if len(config) != len(mapping):
+        print('?')
+        quit()
+    config = [config[mapping_inv[i]] for i in range(len(mapping_inv))]
+    config = (tuple(config[:int(len(config)/2)]),tuple(config[int(len(config)/2):]))
+    return config
+
+def count_ones(binary_string, L):
+    segment_length = L
+    num_segments = len(binary_string) // segment_length
+    return [binary_string[i * segment_length : (i + 1) * segment_length].count('1') for i in range(num_segments)]
+########################################################################################
+def creation_operator_mapping(data,save = True):
+    '''
+    creates a dictionary (c^\dagger):((I,sector)---->(J,sector,sign))
+    ------------------------------------------------------------------
+    Uses some fucntions of chain class instance
+    '''
+    #####
+    if save == True:
+        L = 2;t = 1;U = 6;V = 1;loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+        mu = 0
+        H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+        for k in data.keys():
+            H_params['config'] = k
+            chain_instance = chains(H_params)
+            config_basis = chain_instance.basis
+            equiv_classes,perm_map = DATA[k]
+            DATA[k] = (equiv_classes,perm_map,config_basis)
+        chain_instance = chains(H_params)
+        chain_instance.location_mapping()
+        ######
+        G_mapping = {}
+        count = 0
+        for sec in data:
+            count +=1
+            print('#sec',count)
+            sec_basis = data[sec][2]
+            for state in sec_basis:
+                I = int(state,2)
+                for j in range(1,L**2+1):
+                    for s in range(2):
+                        for eta in range(3):
+                            J,sgn = chain_instance.creation_operator(j,eta,s,I)
+                            if J != None:
+                                sec_new = string_to_config(chain_instance.binp(J,24),L=2)
+                                pair = ((sec,I),(sec_new,J,sgn))
+                                if (j,eta,s) not in G_mapping.keys():
+                                    G_mapping[(j,eta,s)] = []
+                                G_mapping[(j,eta,s)].append(pair)
+        with open('/mnt/users/kotssvasiliou/ED/utils/configs/'+'G_dict.pkl', 'wb') as f:
+            pickle.dump(G_mapping, f, protocol=pickle.HIGHEST_PROTOCOL)
+    else:
+        with open('/mnt/users/kotssvasiliou/ED/utils/configs/G_dict.pkl','rb') as f:
+            G_mapping= pickle.load(f)
+
+    return G_mapping
+
+'''
+def allowed_transitions(G_mapping,j,eta,s):
+    
+    #Determine which symmetry sectors {|sec_new>} and |{sec}> are connected via c^\dagger_{i,s}.
+    
+    for key in G_mapping:
+        if (j,eta,s) == key:
+            mapping = G_mapping[key]
+    pairs = set()
+    for pair in mapping:
+        sec_old = 
+
+    for key in mapping:
+            if i == key[0]:  # Check if the creation operator acts on site i
+                sec = key[1]
+                sec_new = mapping[key][0]
+                pairs.add((sec, sec_new))
+        return list(pairs)
+'''
+
+def all_bases():
+    '''
+    get the bases for all sectors and then try and get the mapping.
+    the details of the hamiltonian don't matter here
+    '''
+    ##
+    #string = '100110000011111000101010'
+    #print(string_to_config(string,L=2))
+    #quit()
+    ##
+    DATA = load_configs('configs/triangle_2_full.pkl')
+    L = 2;t = 1;U = 6;V = 1;loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
+    mu = 0
+    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    itime = time.time()
+    for k in DATA.keys():
+        H_params['config'] = k
+        chain_instance = chains(H_params)
+        config_basis = chain_instance.basis
+        ##
+        equiv_classes,perm_map = DATA[k]
+        DATA[k] = (equiv_classes,perm_map,config_basis)
+        ##
+    ########
+    # create mapping
+    #######
+    map = chain_instance.location_mapping()
+    #print(map)
+    #quit()
+    index = 0
+    for sec in DATA:
+        sec_basis = DATA[sec][2]
+        for state in sec_basis:
+            index+=1
+            for j in range(1,L**2+1):
+                for s in range(2):
+                    for eta in range(3):
+                        J,sgn = chain_instance.creation_operator(j,eta,s,int(state,2))
+                        if J != None:
+                            print('-'*100)
+                            print('ACTING WITH OPERATOR',(j,eta,s))
+                            print('intiial sector:',string_to_config(state,L=2))
+                            print('mapped sector :',string_to_config(chain_instance.binp(J,24),L=2))
+                            print(state,'---->',chain_instance.binp(J,24),'sign',sgn)
+                            #quit()
+        if index >1:
+            quit()
+    ftime = time.time()
+    print(ftime-itime)
+
+
+
+
+
+
+
+
+
+
+
+##########################################################################################
+
 #######
 if __name__ == "__main__":
+    test_spectra(repeats=10)
+    quit()
+    DATA = load_configs('configs/triangle_2_full.pkl')
+    G_mapping = creation_operator_mapping(DATA,save=False)
+    print(G_mapping.keys())
+    for val in G_mapping[(1, 0, 0)]:
+        print(val[0],'---->',val[1])
+    quit()
     #save_L_2_configs()
     #quit()
     #print(reindex_permutation([2,3,5,4,1,0,8,9,11,10,7,6]))
-    #quit()
+    #quit())=
+    all_bases()
+    quit()
+    print(string_to_config('100000000000000000000001',L = 2))
+    quit()
+    test()
+    quit()
     test_configurations(1)
     #test_spectra()
     #print(len(chain.equivalence_classes))

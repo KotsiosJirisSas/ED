@@ -894,7 +894,7 @@ class chains():
             print('no mode added')
             quit()
         diag_states = {}
-        #diag_states['configuration'] = self.config
+        #diag_states['config'] = self.config
         diag_states['es'] = e
         diag_states['vs'] = v
         diag_states['ns'] = self.nstates 
@@ -1052,7 +1052,7 @@ class chains():
         ***********
         '''
         bin_length = len(self.loc)
-        x = self.map[(j,eta,s)]
+        x = bin_length - self.map[(j,eta,s)] -1 #reverses the location
         if (I >> x) & 1:  # If site j is already occupied, return None
             return None, None
         J = I | (1 << x)
@@ -1060,7 +1060,6 @@ class chains():
         #forget about sign for now
         sign = (-1) **(self.binp(I & ((1 << x) - 1),length=bin_length).count('1'))
         return J, sign
-
 ####################################################################################################################################
 ####################################################################################################################################
 ####################################################################################################################################
@@ -1903,7 +1902,7 @@ def GS_energy(t,U,V):
     corrs = correlations(data_dict)
     return
 
-def ED_exe(target_dir,beta_min,beta_max,total):
+def ED_exe(mu_input):
     '''
     This is a single ED run.
 
@@ -1923,15 +1922,18 @@ def ED_exe(target_dir,beta_min,beta_max,total):
                                 >> 'H_sq'
                                 where each key is a Nx1 array, where N = total
     '''
-    L = 2;t = 1;U = 6;V = 1
+    target_dir = '/mnt/users/kotssvasiliou/ED/RUNS/BENCHMARKS/'
+    L = 2;t = 1;U = 5;V = 1
     loc = [1,3,1,3,2,4,2,4,1,2,1,2,3,4,3,4,1,4,1,4,2,3,2,3]
     #L = 1;t = 1;U = 6;V = 0
     #loc = [1,1,1,1,1,1]
     #mu = 0 #half-filling; for 1electron per site, mu=-3U and for two, mu=-1.5U
-    mu = 0
+    mu = mu_input*U
     section_params = {'geometry':'triangular','L':L,'partial':False,'projection':False}
-    H_params = {'L':L,'loc':loc,'sign':True,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    SGN = False
+    H_params = {'L':L,'loc':loc,'sign':SGN,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
     H_params['H_params']['mu'] = mu
+    print(H_params)
     CCs = chain_configs(params=section_params)
     CCs.configuration_reduction()
     symmetric_configs = CCs.symm_configs
@@ -1949,7 +1951,8 @@ def ED_exe(target_dir,beta_min,beta_max,total):
     print('*'*50)
     corrs = correlations(data_dict)
     #betas = np.linspace(beta_min,beta_max,num=total)*(1./t)
-    betas = np.geomspace(beta_min,beta_max,num=total)*(1./t)
+    #betas = np.geomspace(beta_min,beta_max,num=total)*(1./t)
+    betas = np.array([1,2,3,4,5,6,7,8,9,10])
 
     N_data = np.zeros((2,betas.shape[0]),dtype=float)
     E_data = np.zeros((2,betas.shape[0]),dtype=float)
@@ -1971,7 +1974,7 @@ def ED_exe(target_dir,beta_min,beta_max,total):
     dict_out['Es'] = E_data
     dict_out['Ns'] = N_data
     #######################################################
-    output_file = os.path.join(target_dir,"data.pkl")
+    output_file = os.path.join(target_dir,"data_"+str(mu_input)+"_.pkl")
     with open(output_file, 'wb') as f:
         pickle.dump(dict_out, f, protocol=pickle.HIGHEST_PROTOCOL)
     return
@@ -2008,7 +2011,8 @@ def exe_multirun_ED(target_dir,index,total):
     print('Step3:Calculating thermodynamic averages; Index',str(index))
     print('*'*50)
     corrs = correlations(data_dict)
-    betas = np.array([0.2,1,5])*H_params['H_params']['U']
+    #betas = np.array([0.2,1,5])*H_params['H_params']['U']
+    betas = np.array([1,2,3,4,5,6,7,8,9,10])
     data_out = np.zeros((2,betas.shape[0]),dtype=float)
     for i,beta in enumerate(betas):
         data_out[0,i],data_out[1,i] = corrs.N_moments(beta)
@@ -2580,8 +2584,8 @@ if __name__ == "__main__":
     #test_mapping_proj()
     #test_equivalent_sectors_proj()
 
-    test_equivalent_sectors()
-    quit()
+    #test_equivalent_sectors()
+    #quit()
     # Extract command and argument
     command = sys.argv[1]
     argument1 = float(sys.argv[2])
@@ -2594,7 +2598,8 @@ if __name__ == "__main__":
     if command == "exe_multirun_ED":
         exe_multirun_ED(target_dir,argument1,argument2)
     elif command == 'ED_exe':
-        ED_exe(target_dir,argument1,argument2,argument3)
+        print('mu',argument1)
+        ED_exe(mu_input=argument1)
     elif command == 'GS_energy':
         GS_energy(t=argument1,U=argument2,V=argument3)
     elif command == 'tests':

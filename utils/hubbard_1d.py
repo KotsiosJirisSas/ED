@@ -25,9 +25,10 @@ class hubbard_chain():
         self.H_params = params['H_params']
         self.t = self.H_params['t']
         self.U = self.H_params['U']
+        self.V = self.H_params['V']
         self.mu = self.H_params['mu']
         self.L = params['L']
-        self.loc = params['loc']
+        #self.loc = params['loc']
         self.sign = params['sign']# boolean T/F
         self.basis()#generates basis
         self.diag_params = params['diag_params']
@@ -87,9 +88,14 @@ class hubbard_chain():
         self.len_basis_up = count_up
         self.len_basis_dn = count_dn
         self.dim = count_up*count_dn
-        print('Hilbert Space size:',self.dim)
+        print('Hilbert Space size:',self.dim,'for (N_up,N_dn)=(',Nup,Ndn,')')
         # add option for sparse construction
         self.Hamiltonian = np.zeros((self.dim,self.dim),dtype=float)
+        for state_up in index_up:
+            for state_dn in index_dn:
+                N_el = self.countBits(state_up)+self.countBits(state_dn)
+                if N_el != (Nup+Ndn):
+                    print('gucvfhkbdj')
         return 
     
     def hop_ij_up(self,i,j,m):
@@ -109,6 +115,10 @@ class hubbard_chain():
             #get sign
             if self.sign == True:
                 sgn = self.fermion_sgn(self.binp(s1,length=self.L),self.binp(s2,length=self.L))
+                if sgn == -1:
+                    print('.')
+            else:
+                sgn = 1
             #generate all the basis states, since the other spin here is just playing spectator role
             for k in range(1,self.len_basis_dn+1):
                 I1 = (k-1)*self.len_basis_up + (m-1)
@@ -132,6 +142,8 @@ class hubbard_chain():
             #get sign
             if self.sign == True:
                 sgn = self.fermion_sgn(self.binp(s1,length=self.L),self.binp(s2,length=self.L))
+            else:
+                sgn = 1
             #generate all the basis states, since the other spin here is just playing spectator role
             for k in range(1,self.len_basis_up+1):
                 I1 = (m-1)*self.len_basis_up + (k-1)
@@ -182,7 +194,13 @@ class hubbard_chain():
                 I_physical = I_up+I_dn*(2**self.L)
                 for i in range(self.L):
                     occ = self.occupancy(I_physical,i)
-                    self.Hamiltonian[m_tot,m_tot] += -self.mu*occ + 0.5*U*(occ-1.)**2
+                    self.Hamiltonian[m_tot,m_tot] += -self.mu*occ + 0.5*self.U*(occ-1.)**2
+                    
+                    #n.n. repulsion
+                    j = (i+1)%self.L
+                    occ_j = self.occupancy(I_physical,j)#I_physical is the basis state and j is the site
+                    self.Hamiltonian[m_tot,m_tot] += self.V*((occ-1.)*(occ_j-1))
+
                     #second way of adding interaction: equivalent up to chem pot + shift in energy.
                     # chem pot: mu = 0 vs mu = U/2 (half filling)
                     # shift:         0 vs L*U/2 
@@ -276,7 +294,7 @@ class hubbard_chain():
 
     def occupancy(self,psi,i):
         '''
-        Calculates occupancy of site i for a two species system on chain of length L
+        Calculates occupancy of state psi at site i for a two species system on chain of length L
         '''
         mask = 2**(i)+2**(self.L+i)
         occ = self.countBits(psi & mask)
@@ -336,7 +354,7 @@ class thermodynamics():
                 bases_inv[(n_up,n_down)] = [chain.index_up,chain.index_dn]
                 if min(lam) < lowestEnergy:
                     lowestEnergy  = min(lam)
-                    GSSector      = (n_up,n_down) 
+                    GSSector      = (n_up,n_down)
         timef = time.time()
         print('time needed to diagonalize all sectors',timef-timei)
         print("The ground state occured in (n_up,n_down)=",GSSector,':',lowestEnergy)
@@ -365,7 +383,6 @@ class thermodynamics():
             return None, None
         I_s2 = I_s | (1 << j)
         # Compute sign factor (count fermions to the left)
-        #forget about sign for now
         sign = (-1) ** ((bin(I_s & ((1 << j) - 1)).count('1')) + (bin(I_rest).count('1') if I_rest is not None else 0))
         return I_s2, sign
     def create_mapping(self):
@@ -485,12 +502,36 @@ class thermodynamics():
         H_avg = np.exp(log_H)
         H_avg_unshifted = H_avg + self.lowestEnergy
         return H_avg_unshifted
+    def OccNum(self,beta):
+        '''
+        <N> = \sum_sectors \sum_a <a|Nexp(-betaH)|a> = \sum_sectors N_sector \sum_a exp(-beta E_a)
+        '''
+
+        log_Z =  self.partition_function(beta)#changed pervious code so that it returns logsumexp() rather than its exponential
+        log_terms_N = []
+        for sector in self.energies:
+            energies = self.energies[sector]
+            occupation_num = sector[0]+sector[1]
+            #print(sector,occupation_num)  
+            #
+            if occupation_num > 0:
+                log_terms_N.append((-beta * energies) + np.log(occupation_num))  
+                log_N = logsumexp(np.concatenate(log_terms_N)) - log_Z
+        ##################################
+        #while not physically relevant, return also the values with shifted energy.
+        N_avg = np.exp(log_N)
+        return N_avg
+
     def GreenFunc(self, beta,n_tau):
         """
         Returns the Green's function for the system. Has size L x L x s x s x Ntau --> L x L x s x Ntau
         """
-        self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
-        self.matrix_elements_dn = self.compute_matrix_elements(mapping=self.mapping_dn)
+        if not hasattr(self,"matrix_elements_up"):
+            print('calclulating matrix elements up')
+            self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
+        if not hasattr(self,"matrix_elements_dn"):
+            print('calclulating matrix elements dn')
+            self.matrix_elements_dn = self.compute_matrix_elements(mapping=self.mapping_dn)
         taus = np.linspace(0, beta, num=n_tau)
         G = np.zeros((self.L, self.L, 2, n_tau), dtype=np.complex128)
         
@@ -513,6 +554,50 @@ class thermodynamics():
                                 log_terms = -beta * Em - taus * (En - Em)
                                 G[i, j, spin_idx, :] += amp_i*amp_j * np.exp(log_terms - log_Z)
         return G
+
+    def GreenFunc_partial(self, beta,n_tau,parity=0):
+        """
+        A modification of the GreenFunc function, calculating it only considering 'even'/'odd' symmetry sectors.
+        Used to benchmark with Dumitru's SSE code
+        Adding 'even' and 'odd' terms should match the full green's function
+        ----------------------------------
+        Parity=0(even) or 1 (odd)
+        ----------------------------------
+        Has size L x L x s x s x Ntau --> L x L x s x Ntau
+        """
+        if not hasattr(self,"matrix_elements_up"):
+            print('calclulating matrix elements up')
+            self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
+        if not hasattr(self,"matrix_elements_dn"):
+            print('calclulating matrix elements dn')
+            self.matrix_elements_dn = self.compute_matrix_elements(mapping=self.mapping_dn)
+        taus = np.linspace(0, beta, num=n_tau)
+        G = np.zeros((self.L, self.L, 2, n_tau), dtype=np.complex128)
+        log_Z = self.partition_function(beta)
+        
+        for i in range(self.L):
+            for j in range(self.L):
+                for spin_idx, spin in enumerate(['up', 'down']):
+                    sectors_i = self.allowed_transitions(i, spin)
+                    sectors_j = self.allowed_transitions(j,spin)
+                    #project out some sections
+                    sectors_i = [elem for elem in sectors_i if sum(elem[0]) % 2 == parity]
+                    sectors_j = [elem for elem in sectors_j if sum(elem[0]) % 2 == parity]
+                    sectors_i = set(sectors_i)
+                    sectors_j = set(sectors_j)
+                    sectors = sectors_i.intersection(sectors_j)
+                    #print('allowed sectors w/ parity',parity,':',sectors)
+                    for (sec, sec_new) in sectors:
+                        for m in range(len(self.eigenstates[sec])):
+                            for n in range(len(self.eigenstates[sec_new])):
+                                Em = self.energies[sec][m]
+                                En = self.energies[sec_new][n]
+                                matrix_elements = self.matrix_elements_up if spin == 'up' else self.matrix_elements_dn
+                                amp_j = matrix_elements[(j, sec, sec_new)][n, m]
+                                amp_i = matrix_elements[(i, sec, sec_new)][n, m].conj()
+                                log_terms = -beta * Em - taus * (En - Em)
+                                G[i, j, spin_idx, :] += amp_i*amp_j * np.exp(log_terms - log_Z)
+        return G
     @staticmethod
     def binp(num, length):
         '''
@@ -520,6 +605,16 @@ class thermodynamics():
         regular bin(x) returns '0bbinp(x)' and the 0 and b can fuck up other stuff
         '''
         return format(num, '#0{}b'.format(length + 2))[2:]
+    @staticmethod
+    def countBits(x):
+        '''Counts number of 1s in bin(n)'''
+        #From Hacker's Delight, p. 66
+        x = x - ((x >> 1) & 0x55555555)
+        x = (x & 0x33333333) + ((x >> 2) & 0x33333333)
+        x = (x + (x >> 4)) & 0x0F0F0F0F
+        x = x + (x >> 8)
+        x = x + (x >> 16)
+        return x & 0x0000003F 
 #######################################
 if __name__ == "__main__":
     L = 6
