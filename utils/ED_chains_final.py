@@ -1986,6 +1986,20 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
                     timef = time.time()
                     if verbose>0:print('Time(s):',timef-timei,'\n')
     print('GFUNK',thermo.Gfunc[beta][:,index_1,index_2])
+    ##########
+    #save green's functions
+    ##########
+    picklefile = target_dir +'greens_function_000.pkl'
+    if os.path.exists(picklefile):
+        with open(picklefile, 'rb') as f:
+            G = pickle.load(f)
+    else:
+        print('new greends func')
+        G =  np.zeros((taus.shape[0],2*thermo.Nflav*thermo.L**2,2*thermo.Nflav*thermo.L**2),dtype=complex) 
+    G[:,index_1,index_2] = thermo.Gfunc[beta][:,index_1,index_2]
+    with open(picklefile,'wb') as f:
+        pickle.dump(G,f)
+    
     return
 def has_duplicates_with_tol(arr, tol=1e-8):
     '''
@@ -2173,21 +2187,10 @@ def check_hamiltonian(parameters,config):
     return
 ##############
 if __name__ == "__main__":
-    x = int('1110001111111111',2)
-    x = int('1100110011001100',2)
-    x = int('1111111111110001',2)
-    x = int('1000000000000001',2)
-    #print(bin(x),bin(time_reversal_transform(x,2,16)))
-    #print(bin(x),bin(translation_y_transform_new(x,L=2)))
-    #quit()
-    #translation_spectra(60)
-    #quit()
-    #check_spectra(600)
-    #quit()
     parameters = {'L':2,
                   'geometry':'square',
                   't':1,
-                  'mu':0,
+                  'mu':2,
                   'U':4,
                   'V':1,
                   'partial':False,
@@ -2196,8 +2199,10 @@ if __name__ == "__main__":
                   'JW string':True,
                   'mode':'full'}
     #check_hamiltonian(parameters=parameters,config=((1,0,0,0),(1,0,1,0)))
-    print('doing indices',0,0)
-    Greens_function_calculation(index_1=0,index_2=0,parameters=parameters,beta=10,Ntau=10,verbose=1)
+    index_1 = int(sys.argv[1])
+    index_2 = int(sys.argv[2])
+    print('doing indices',index_1,index_2)
+    Greens_function_calculation(index_1=index_1,index_2=index_2,parameters=parameters,beta=10,Ntau=10,verbose=1)
     quit()
     #plot_mu_vs_N(parameters=parameters)
     ED_exe(parameters=parameters)

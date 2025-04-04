@@ -461,7 +461,27 @@ class thermodynamics():
         # Compute log partition function in one vectorized step
         log_Z = logsumexp(- beta * all_energies)
         return log_Z
-    
+    def partition_function_partial(self, beta,parity=0):
+        """
+        Computes the partition function in a given parity sector using logsumexp for numerical stability,
+        leveraging NumPy vectorization to speed up calculations.
+        returns *log_Z*
+
+        Parity = 0: even number of particles
+        Parity = 1: odd number of particles
+        """
+        all_energies = []
+        # Gather all energies
+        for sectors in self.energies:
+            #print('parity check',sectors,parity,(sectors[0]+sectors[1])%2 == parity)
+            if (sectors[0]+sectors[1])%2 == parity:
+                all_energies.append(self.energies[sectors])
+        # Convert lists to NumPy arrays for fast computation
+        all_energies = np.concatenate(all_energies)
+        # Compute log partition function in one vectorized step
+        log_Z_P = logsumexp(- beta * all_energies)
+        return log_Z_P
+        
     def compute_matrix_elements(self, mapping):
         """
         Compute \\langle n | c^\dagger | m \\rangle in the eigenbasis.
@@ -525,6 +545,8 @@ class thermodynamics():
     def GreenFunc(self, beta,n_tau):
         """
         Returns the Green's function for the system. Has size L x L x s x s x Ntau --> L x L x s x Ntau
+        
+        NOTE 03 APRIL UPDATES: ADDED AN OVERALL MINUS SIGN. G(0,0,TAU=0+)= -1 + <N> = -1/2 EG, NOT 1/2
         """
         if not hasattr(self,"matrix_elements_up"):
             print('calclulating matrix elements up')
@@ -564,6 +586,9 @@ class thermodynamics():
         Parity=0(even) or 1 (odd)
         ----------------------------------
         Has size L x L x s x s x Ntau --> L x L x s x Ntau
+        ----------------------------------
+        NOTE 03 APRIL UPDATES:  NOW USING THE CORRECT PARTITIONA FUNCTION WITH SAME PARITY AS GREENS FUNCTION
+                                ALSO, ADDED AN OVERALL MINUS SIGN. G(0,0,TAU=0+)= -1 + <N> = -1/2 EG, NOT 1/2
         """
         if not hasattr(self,"matrix_elements_up"):
             print('calclulating matrix elements up')
@@ -573,8 +598,7 @@ class thermodynamics():
             self.matrix_elements_dn = self.compute_matrix_elements(mapping=self.mapping_dn)
         taus = np.linspace(0, beta, num=n_tau)
         G = np.zeros((self.L, self.L, 2, n_tau), dtype=np.complex128)
-        log_Z = self.partition_function(beta)
-        
+        log_Z_p = self.partition_function_partial(beta,parity=parity)#NOTE Changed it in 03 April to use the partition function of that sector
         for i in range(self.L):
             for j in range(self.L):
                 for spin_idx, spin in enumerate(['up', 'down']):
@@ -596,7 +620,7 @@ class thermodynamics():
                                 amp_j = matrix_elements[(j, sec, sec_new)][n, m]
                                 amp_i = matrix_elements[(i, sec, sec_new)][n, m].conj()
                                 log_terms = -beta * Em - taus * (En - Em)
-                                G[i, j, spin_idx, :] += amp_i*amp_j * np.exp(log_terms - log_Z)
+                                G[i, j, spin_idx, :] -= amp_i*amp_j * np.exp(log_terms - log_Z_p) #NOTE: THE UPDATED MINUS SIGN (-= instead of +=)
         return G
     @staticmethod
     def binp(num, length):
