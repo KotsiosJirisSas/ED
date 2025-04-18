@@ -520,8 +520,8 @@ class chains():
                     sgn = 1
                     if self.sign == True:
                         sgn = self.fermion_sgn(self.binp(s,length=L_chain),self.binp(s2,length=L_chain))
-                        if sgn == -1 and L_chain == 2:
-                            print('negative sign? Shouldnt happen for L=2')
+                        if sgn == -1:
+                            print('negative sign.System size:L=',self.L,'..expected??')
                     H[n,m] -= t*sgn
         return H
     #@staticmethod
@@ -864,7 +864,7 @@ class thermodynamics():
     ###################################
     #         BASIC OBSERVABLES       #
     ###################################
-    def partition_function(self,beta):
+    def partition_function(self,beta,partial=False,parity=0):
         '''
         Computes the partition function using logsumexp for numerical stability
         ------------------------------------------------------------------------
@@ -874,15 +874,29 @@ class thermodynamics():
                                     - 'es': Mx1 array of eigenvalues (spectrum)
 
         beta (float):               Inverse temperature (1/kT).
-        
+        partial(Bool):              partial == True considers the trace over a subspace of the symmetry sectors
+        parity(0/1):                Only if partial==True. Parity=0 keeps the sectors with even number of electrons 
+                                    Parity=1: Odd number of electrons
+
         Returns:
         float:                      The log of the partition function Z.
         '''
         log_terms = []
-        for sector_data in self.data.values():
-            weight = sector_data['weight']
-            energies = sector_data['es']
-            log_terms.append(np.log(weight) + (-beta * energies))
+        if partial == False:
+            for sector_data in self.data.values():
+                weight = sector_data['weight']
+                energies = sector_data['es']
+                log_terms.append(np.log(weight) + (-beta * energies))
+        elif partial == True:
+            for sector,sector_data in self.data.items():
+                if sum(map(sum, sector)) % 2 == parity:
+                    if self.verbose>1:print('accepted sector',sector,parity)
+                    weight = sector_data['weight']
+                    energies = sector_data['es']
+                    log_terms.append(np.log(weight) + (-beta * energies))
+        else:
+            if self.verbose>0:print('wrong input. Partial=T/F and parity = 0/1')
+            raise ValueError
         log_terms = np.concatenate(log_terms)
         log_Z = logsumexp(log_terms)
         return log_Z
@@ -974,7 +988,7 @@ class thermodynamics():
     ###################################
     #         GREENS FUNC MAIN       #
     ###################################       
-    def greens_func_element(self,index_1,index_2,g,taus,beta):
+    def greens_func_element(self,index_1,index_2,g,taus,beta,partial=False,parity=0):
         '''
         Calculates an element of the Green's function G_{α,β}(τ) for a single group action:
         G_{α,β}(τ) ~ Σ_g <c^\dagger_{gα}><c^\dagger_{gβ}>.
@@ -997,6 +1011,9 @@ class thermodynamics():
             taus(np.array)              :A 1D array for the τ where the Green's function will be measured. Must have τ \in [0,β] and really,0 means 0^{+}  and β means β^{-},
                                         as otherwise the Green's function form changes
             beta(float)                 :The inverse temperature of the system
+            partial(Bool)               :For Benchmarking with SSE. Only considers a subset of the Hilbert space, set by *parity* var
+            parity(0/1)                 :Consider even/odd electron number symmetry sectors only
+
         Output:
             Gs(np.array)                :An array matching the shape of the taus. It gives a contribution for this g to the component G_{op_1,op_2}
         --------------------------------------------------------------------------------------------------
@@ -1041,7 +1058,10 @@ class thermodynamics():
             return prod
 
         ###########
-        log_Z =  self.partition_function(beta)
+        if partial == False:
+            log_Z =  self.partition_function(beta)
+        else:
+            log_Z_p = self.partition_function(beta,partial=partial,parity=parity)
         log_terms_G = []
         op_group_name_1 = f"cdagger_op_{op_1[0]}_{op_1[1]}_{op_1[2]}"
         op_group_name_2 = f"cdagger_op_{op_2[0]}_{op_2[1]}_{op_2[2]}"
@@ -1049,7 +1069,10 @@ class thermodynamics():
         group2 = self.cdagger_map[op_group_name_2]
         #right now, consider only a single group element...
         for representative_sector in self.data.keys():
-            #what is relevant sector?
+            #filter through sectors that are in wrong subspace is var *partial* is True
+            if (partial == True) and sum(map(sum, representative_sector)) % 2 != parity:
+                continue
+            #what is relevant *final sector? ie represenative_scetor -- c^\dagger --> sector_final 
             sector_f_1 = None
             sector_f_2 = None
             for name in group1:
@@ -1113,13 +1136,34 @@ class thermodynamics():
                         log_term = np.log(1/rep_sector_period)+ (-beta*Em[i])-taus *(En[j]-Em[i])+ np.log(F1*F2+0j) #force log to take complex (and negative) arguments when F1*F2 is negative, which i don't see why it can't be.
                         log_terms_G.append(log_term)
                     #print(log_term)
-        log_G = logsumexp(log_terms_G,axis=0) - log_Z
+        
+        if partial == False:
+            log_G = logsumexp(log_terms_G,axis=0) - log_Z
+        else:
+            log_G = logsumexp(log_terms_G,axis=0) - log_Z_p
         #################################
-        if not hasattr(self,'Gfunc'):
-            self.Gfunc = {}
-            self.Gfunc[beta] = np.zeros((taus.shape[0],2*self.Nflav*self.L**2,2*self.Nflav*self.L**2),dtype=complex) 
-            if self.verbose>0:print('Initialized Greens function')
-        self.Gfunc[beta][:,index_1,index_2] += np.exp(log_G)
+        ######### saving ################
+        #################################
+        if partial == False:
+            if not hasattr(self,'Gfunc'):
+                self.Gfunc = {}
+                self.Gfunc[beta] = np.zeros((taus.shape[0],2*self.Nflav*self.L**2,2*self.Nflav*self.L**2),dtype=complex) 
+                if self.verbose>0:print('Initialized Greens function')
+            self.Gfunc[beta][:,index_1,index_2] += np.exp(log_G)
+        else:
+            print('saving,.............',parity)
+            if parity == 1:
+                if not hasattr(self,'Gfunc_odd'):
+                    self.Gfunc_odd = {}
+                    self.Gfunc_odd[beta] = np.zeros((taus.shape[0],2*self.Nflav*self.L**2,2*self.Nflav*self.L**2),dtype=complex) 
+                    if self.verbose>0:print('Initialized odd Greens function')
+                self.Gfunc_odd[beta][:,index_1,index_2] += np.exp(log_G)
+            elif parity == 0:
+                if not hasattr(self,'Gfunc_even'):
+                    self.Gfunc_even = {}
+                    self.Gfunc_even[beta] = np.zeros((taus.shape[0],2*self.Nflav*self.L**2,2*self.Nflav*self.L**2),dtype=complex) 
+                    if self.verbose>0:print('Initialized even Greens function')
+                self.Gfunc_even[beta][:,index_1,index_2] += np.exp(log_G)
         return np.exp(log_G)
     
     ###################################
@@ -1884,9 +1928,11 @@ def ED_exe(parameters,target_dir='/mnt/users/kotssvasiliou/ED/RUNS/BENCHMARKS/',
             if isinstance(item, h5py.Group):
                 print_h5_structure(item, indent + 1)
     print_h5_structure(thermo.cdagger_map)
-def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir='/mnt/users/kotssvasiliou/ED/RUNS/BENCHMARKS/',verbose=1):
+def Greens_function_calculation(index_1,index_2,partial,parity,parameters,beta,Ntau,target_dir='/mnt/users/kotssvasiliou/ED/benchmarks/2dsystem_benchmarks/',verbose=2):
     '''
-    This is a single ED run that also caluclates a *single* Green's function component
+    This is a single ED run that also caluclates a *single* Green's function component.
+    For L=2 square this is fine, since time_ED <<<< time_greens_func but if this is not so, trink about storing spectra and reading them
+    Saves stuff in a pickle with info {Z,G} or {Z_p,G_p}
 
     Input:
         index_1/2(int)          :The indices of the Greens function to be calculated.
@@ -1897,6 +1943,8 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
                                                                     'sign','JW string': treat hardcore bosons or fermions? sign is in hamiltonian while JW string is in greens function
                                                                     'mode': Full or Lanczos diagonalization
                                                                     'partial','projection': creation of Hilebrt space
+        partial(Bool)           :Used for Benchmarking with SSE
+        parity(0/1)             :Even or odd Hilbert spaces? Only used when partial == True
                                                                 
     Output:
         combined_data(dict)     :A dictionary containing information on the symmetry sectors and the eigenstates of the representative sectors
@@ -1916,13 +1964,13 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
     V = parameters['V']
     mu = parameters['mu']
     geometry = parameters['geometry']
-    partial = parameters['partial']
+    #partial = parameters['partial']
     projection = parameters['projection']
     sign = parameters['sign']
     JWstring = parameters['JW string']
     mode = parameters['mode']
     #mu = 0 #half-filling; for 1electron per site, mu=-3U and for two, mu=-1.5U
-    system_params = {'geometry':geometry,'L':L,'partial':partial,'projection':projection}
+    system_params = {'geometry':geometry,'L':L,'partial': parameters['partial'],'projection':projection}
     sector_params = {'L':L,'geometry':geometry,'sign':sign,'H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':mode}}
     if verbose>0:print('='*100+'\n GENERATING ALL SYMMETRY SECTORS \n'+'='*100)
     timei = time.time()
@@ -1959,7 +2007,7 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
     #   calculation instance      #
     ###############################
     parameters['loc'] = chain_instance.loc
-    parameters['verbose'] = 1
+    parameters['verbose'] = verbose
     parameters['greens function'] = True
     thermo = thermodynamics(parameters=parameters,combined_data=combined_data)
     ##################################
@@ -1967,12 +2015,13 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
     ##################################
     timei = time.time()
     if verbose>0: print('CALCULATING OR LOADING CREATION OPERATOR MAPPING')
-    thermo.gen_creation_mapping(load=True)
+    thermo.gen_creation_mapping(filename=target_dir+'greens_mapping.h5',load=True)
     timef = time.time()
     if verbose>0:
         print('Time taken:',timef-timei)
         print('MAPPPPPPP',thermo.map)
     taus = np.linspace(0,1,num=Ntau)*beta
+    Z = np.exp(thermo.partition_function(beta=beta,partial=partial,parity=parity))
     #quit()
     #loop through group elements
     for t1 in range(L):#t1 translations
@@ -1982,24 +2031,39 @@ def Greens_function_calculation(index_1,index_2,parameters,beta,Ntau,target_dir=
                     group_element = (s,r,t1,t2)
                     timei = time.time()
                     if verbose>0:print('CACLULATING GREENS FUNCTION TERM FOR GROUP ELEMENT',group_element)
-                    thermo.greens_func_element(index_1=index_1,index_2=index_2,g=group_element,taus=taus,beta=beta)
+                    thermo.greens_func_element(index_1=index_1,index_2=index_2,g=group_element,taus=taus,beta=beta,partial=partial,parity=parity)
                     timef = time.time()
                     if verbose>0:print('Time(s):',timef-timei,'\n')
-    print('GFUNK',thermo.Gfunc[beta][:,index_1,index_2])
+    if partial == False:
+        print('GFUNK',thermo.Gfunc[beta][:,index_1,index_2],'Z',Z)
+        Gfunc_data = thermo.Gfunc[beta][:,index_1,index_2]
+    if (partial == True) and (parity == 0):
+        print('GFUNK',thermo.Gfunc_even[beta][:,index_1,index_2],'Z',Z)
+        Gfunc_data = thermo.Gfunc_even[beta][:,index_1,index_2]
+    if (partial == True) and (parity == 1):
+        print('GFUNK',thermo.Gfunc_odd[beta][:,index_1,index_2],'Z',Z)
+        Gfunc_data = thermo.Gfunc_odd[beta][:,index_1,index_2]
     ##########
-    #save green's functions
+    #save green's functions and Zs
     ##########
-    picklefile = target_dir +'greens_function_000.pkl'
+    if partial== True:
+        picklefile = target_dir +'greens_function_'+str(parity)+'.pkl'
+    else:
+        picklefile = target_dir +'greens_function_total.pkl'
     if os.path.exists(picklefile):
         with open(picklefile, 'rb') as f:
-            G = pickle.load(f)
+            data = pickle.load(f)
     else:
-        print('new greends func')
-        G =  np.zeros((taus.shape[0],2*thermo.Nflav*thermo.L**2,2*thermo.Nflav*thermo.L**2),dtype=complex) 
-    G[:,index_1,index_2] = thermo.Gfunc[beta][:,index_1,index_2]
+        print('new greens func')
+        data = {}
+        data['G'] = np.zeros((taus.shape[0],2*thermo.Nflav*thermo.L**2,2*thermo.Nflav*thermo.L**2),dtype=complex)
+        #G =  np.zeros((taus.shape[0],2*thermo.Nflav*thermo.L**2,2*thermo.Nflav*thermo.L**2),dtype=complex) 
+        data['Z'] = [] 
+
+    data['G'][:,index_1,index_2] = Gfunc_data
+    data['Z'].append(Z)
     with open(picklefile,'wb') as f:
-        pickle.dump(G,f)
-    
+        pickle.dump(data,f)
     return
 def has_duplicates_with_tol(arr, tol=1e-8):
     '''
@@ -2198,11 +2262,13 @@ if __name__ == "__main__":
                   'sign':True,
                   'JW string':True,
                   'mode':'full'}
+    partial = True
+    parity = 0
     #check_hamiltonian(parameters=parameters,config=((1,0,0,0),(1,0,1,0)))
     index_1 = int(sys.argv[1])
     index_2 = int(sys.argv[2])
-    print('doing indices',index_1,index_2)
-    Greens_function_calculation(index_1=index_1,index_2=index_2,parameters=parameters,beta=10,Ntau=10,verbose=1)
+    print('doing indices',index_1,index_2,'partial',partial,'parity',parity)
+    Greens_function_calculation(index_1=index_1,index_2=index_2,partial=partial,parity=parity,parameters=parameters,beta=10,Ntau=10,verbose=1)
     quit()
     #plot_mu_vs_N(parameters=parameters)
     ED_exe(parameters=parameters)

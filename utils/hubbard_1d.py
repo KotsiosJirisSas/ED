@@ -30,6 +30,21 @@ class hubbard_chain():
         self.L = params['L']
         #self.loc = params['loc']
         self.sign = params['sign']# boolean T/F
+        print('keys',params.keys())
+        if 'JW string' in params.keys():
+            self.JWstring  = params['JW string']
+        else:
+            self.JWstring = False
+        print('OVERWRITTING... FORCING JWSTRING TO BE FALSE FOR HAMILTONIAN, BUT INCLUDE IN GREENS FUNC')
+        self.JWstring = False
+        if self.sign == True and self.JWstring == True:
+            raise ValueError
+        if self.JWstring == True:
+            print('*'*100,'\n TREATING SYSTEM AS HARDCORE BOSONS W/ JW STRING \n ','*'*100)
+        elif self.sign == True:
+            print('*'*100,'\n TREATING SYSTEM AS PBC FERMIONS \n ','*'*100)
+        else:
+            print('*'*100,'\n TREATING SYSTEM AS PBC HARDCORE BOSONS \n ','*'*100)
         self.basis()#generates basis
         self.diag_params = params['diag_params']
 
@@ -117,6 +132,10 @@ class hubbard_chain():
                 sgn = self.fermion_sgn(self.binp(s1,length=self.L),self.binp(s2,length=self.L))
                 if sgn == -1:
                     print('.')
+            elif (self.JWstring == True) and (i==self.L-1):
+                #parity term
+                print('boundary hop for hc bosons')
+                sgn = (-1)**(bin(s1).count('1'))
             else:
                 sgn = 1
             #generate all the basis states, since the other spin here is just playing spectator role
@@ -142,6 +161,10 @@ class hubbard_chain():
             #get sign
             if self.sign == True:
                 sgn = self.fermion_sgn(self.binp(s1,length=self.L),self.binp(s2,length=self.L))
+            elif (self.JWstring == True) and (i==self.L-1):
+                #parity term
+                print('boundary hop for hc bosons')
+                sgn = (-1)**(bin(s1).count('1'))
             else:
                 sgn = 1
             #generate all the basis states, since the other spin here is just playing spectator role
@@ -316,10 +339,23 @@ class hubbard_chain():
 
 class thermodynamics():
     def __init__(self,params):
+        '''
+        sign: treat dofs as PBC fermions
+        JWstring: treat dofs as  weirdBC bosons (True) or as PBC bosons (False)
+        '''
         self.params = params
         self.L = params['L']
         self.beta = params['beta']
         self.EDFullSpectrum()
+        if 'verbose' in params.keys():
+            self.verbose = params['verbose']
+        else:
+            self.verbose = 0
+        self.sign = params['sign']
+        if 'JW string' in params.keys():
+            self.JWstring = params['JW string']
+        else:
+            self.JWstring = False
         return
     def EDFullSpectrum(self):
         '''
@@ -378,12 +414,20 @@ class thermodynamics():
         |full> = c^\dagger_{L,up}...c^\dagger_{1,up} c^\dagger_{L,down}...c^\dagger_{1,down} |0>
 
         so in this case when computing c^\dagger_up we don't care about the spin_down part but if computing c^\dagger_down we do care about the spin_up part.
+        ------------------------
+        Input:
+
+        Output:
+        
         """
         if (I_s >> j) & 1:  # If site j is already occupied, return None
             return None, None
         I_s2 = I_s | (1 << j)
         # Compute sign factor (count fermions to the left)
-        sign = (-1) ** ((bin(I_s & ((1 << j) - 1)).count('1')) + (bin(I_rest).count('1') if I_rest is not None else 0))
+        if (self.sign == True) or (self.JWstring == True):
+            sign = (-1) ** ((bin(I_s & ((1 << j) - 1)).count('1')) + (bin(I_rest).count('1') if I_rest is not None else 0))
+        else:
+            sign = +1
         return I_s2, sign
     def create_mapping(self):
         """
@@ -393,7 +437,7 @@ class thermodynamics():
         mapping_dn = {}
         for sector in self.bases:
             sec_basis_up,sec_basis_dn = self.bases[sector]
-            print('sector',sector)
+            #print('sector',sector)
             for state_up in sec_basis_up:
                 I_up = sec_basis_up[state_up]
                 for state_dn in sec_basis_dn:
@@ -423,7 +467,232 @@ class thermodynamics():
         self.mapping_up = mapping_up
         self.mapping_dn = mapping_dn
         return
+    
+    def create_spin_spin_mapping(self):
+        '''
+        Create a mapping for the *basis states* under the action of
+        
+        c†_{↓r} c_{↑r}
 
+        This will connect two sectors (N↑,N↓) & (N↑-1,N↓ +1) and specifically two basis elements J,I (or indices j,i) via a phase (sign)
+
+        Output:
+            map(dict)           :Has keys tuples of the form (r,sec,j) and values (sec_new,j,sign)
+        '''
+        def apply_c_dagger_c(I_up,I_dn,r):
+                    
+            """
+            Apply c^\dagger_dn c_up to a state (Iup+2^LIdn).
+            Ordering:
+            |full> = c^\dagger_{L,up}...c^\dagger_{1,up} c^\dagger_{L,down}...c^\dagger_{1,down} |0>
+            ------------------------
+            Input:
+                I_up(int)           :The decimal representation of spin-up component of state
+                I_dn(int)           :The decimal representation of spin-dn component of state
+                r(int)              :The location of application of the operator
+            Output:
+                J_up(int)           :The decimal representation of spin-up component of new state
+                J_dn(int)           :The decimal representation of spin-dn component of new state
+                sgn(\pm 1)          :The associated sign
+            -----------------------------
+            If output is None then that means state cannot support this c^\dagger c term
+            
+            """
+            if ((I_dn >> r)&1 == 1) or (((I_up >> r)&1 == 0))==True: # hopping not possible
+                return None, None, None
+            J_up = I_up ^ (1 << r)#replace 1 with 0 at r
+            J_dn = I_dn | (1 << r)#replace 0 with 1 at r
+            # Compute sign factor (count fermions between 0 and r-1)
+            if (self.sign == True) or (self.JWstring == True): #if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
+            else:
+                sign = +1
+            return J_up,J_dn,sign
+
+        mapping_cdagc = {}
+        for r in range(self.L):#location of creation/annihilation operator
+            for sector in self.bases:
+                sec_basis_up,sec_basis_dn = self.bases[sector]
+                for state_up in sec_basis_up:#sec_basis_up is dict with keys the indices and values the decimal representation of states
+                    for state_dn in sec_basis_dn:
+                        I_up = sec_basis_up[state_up]
+                        I_dn = sec_basis_dn[state_dn]
+                        J_up,J_dn,sign = apply_c_dagger_c(I_up,I_dn,r)
+                        if J_up == None:continue#skip this (I_up,I_dn) state
+                        sector_new = (sector[0]-1, sector[1]+1)
+                        #now turn dec reps of states to indices
+                        i = self.State2Ind(sector,I_up,I_dn)
+                        j = self.State2Ind(sector_new,J_up,J_dn)
+                        mapping_cdagc[(r,sector,i)] = (sector_new,j,sign)
+        self.mapping_cdagc = mapping_cdagc
+        return
+    def create_eta_mapping(self):
+        '''
+        Create a mapping for the *basis states* under the action of
+        
+        c_{↓r} c_{↑r}
+
+        which is the generator of the hidden SU(2) symmetry of the Hubbard model.
+
+        This will connect two sectors (N↑,N↓) & (N↑-1,N↓ -1) and specifically two basis elements J,I (or indices j,i) via a phase (sign)
+
+        Output:
+            map(dict)           :Has keys tuples of the form (r,sec,j) and values (sec_new,j,sign)
+        '''
+        def apply_c_c(I_up,I_dn,r):
+                    
+            """
+            Apply c_dn c_up to a state (Iup+2^LIdn).
+            Ordering:
+            |full> = c^\dagger_{L,up}...c^\dagger_{1,up} c^\dagger_{L,down}...c^\dagger_{1,down} |0>
+            ------------------------
+            Input:
+                I_up(int)           :The decimal representation of spin-up component of state
+                I_dn(int)           :The decimal representation of spin-dn component of state
+                r(int)              :The location of application of the operator
+            Output:
+                J_up(int)           :The decimal representation of spin-up component of new state
+                J_dn(int)           :The decimal representation of spin-dn component of new state
+                sgn(\pm 1)          :The associated sign
+            -----------------------------
+            If output is None then that means state cannot support this c^\dagger c term
+            
+            """
+            if ((I_dn >> r)&1 == 0) or (((I_up >> r)&1 == 0))==True: # hopping not possible
+                return None, None, None
+            J_up = I_up ^ (1 << r)#replace 1 with 0 at r
+            J_dn = I_dn ^ (1 << r)#replace 1 with 0 at r
+            # Compute sign factor (count fermions between 0 and r-1)
+            if (self.sign == True) or (self.JWstring == True): #if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
+            else:
+                sign = +1
+            return J_up,J_dn,sign
+        
+        mapping_cdagc = {}
+        for r in range(self.L):#location of annihilation operators
+            for sector in self.bases:
+                sec_basis_up,sec_basis_dn = self.bases[sector]
+                for state_up in sec_basis_up:#sec_basis_up is dict with keys the indices and values the decimal representation of states
+                    for state_dn in sec_basis_dn:
+                        I_up = sec_basis_up[state_up]
+                        I_dn = sec_basis_dn[state_dn]
+                        J_up,J_dn,sign = apply_c_c(I_up,I_dn,r)
+                        if J_up == None:continue#skip this (I_up,I_dn) state
+                        sector_new = (sector[0]-1, sector[1]-1)
+                        #now turn dec reps of states to indices
+                        i = self.State2Ind(sector,I_up,I_dn)
+                        j = self.State2Ind(sector_new,J_up,J_dn)
+                        mapping_cdagc[(r,sector,i)] = (sector_new,j,sign)
+        self.mapping_cdagc = mapping_cdagc
+        return
+    
+    def test_eta_mapping(self,sector_test=(3,3)):
+        '''
+        meant to test the ss_mapping function
+        '''
+        print('\n \n \n','LOOKING AT C^\DAGGER_DOWN C_UP AT SECTOR',sector_test,'\n \n \n')
+        if not hasattr(self,'mapping_cdagc'):
+            timei = time.time()
+            self.create_spin_spin_mapping()
+            timef = time.time()
+            print('time for spin spi mapping',timef-timei)
+        sector_new_test = (sector_test[0]-1,sector_test[1]+1)
+        basis_up = self.bases[sector_test][0]
+        dim_up = len(basis_up)
+        basis_dn = self.bases[sector_test][1]
+        #print(basis_up,basis_dn)
+        #quit()
+        basis_up_new = self.bases[sector_new_test][0]
+        dim_up_new = len(basis_up_new)
+        basis_dn_new = self.bases[sector_new_test][1]
+        for key in self.mapping_cdagc.keys():
+            #print('key',key)
+            #continue
+            r = key[0]
+            sector = key[1]
+            i = key[2]
+            #state_
+            if sector == sector_test:
+                ##############################
+                i_dn = i//dim_up +1
+                i_up = i%dim_up +1
+                #print(i,i_up,i_dn)
+                Iup = basis_up[i_up]
+                Idn = basis_dn[i_dn]
+                ##############################
+                vals = self.mapping_cdagc[key]
+                j = vals[1]
+                j_dn = j//dim_up_new +1
+                j_up = j%dim_up_new +1
+                Jup = basis_up_new[j_up]
+                Jdn = basis_dn_new[j_dn]
+                sgn = vals[2]
+                print('hopping at site ',r,': \n','from state',(self.binp(Iup,length=self.L),self.binp(Idn,length=self.L)),' to  state ',(self.binp(Jup,length=self.L),self.binp(Jdn,length=self.L)),' with sign',sgn,'\n','*'*100)
+        return
+    
+    def test_ss_mapping(self,sector_test=(3,2)):
+        '''
+        meant to test the ss_mapping function
+        '''
+        print('\n \n \n','LOOKING AT C^\DAGGER_DOWN C_UP AT SECTOR',sector_test,'\n \n \n')
+        if not hasattr(self,'mapping_cdagc'):
+            timei = time.time()
+            self.create_spin_spin_mapping()
+            timef = time.time()
+            print('time for spin spi mapping',timef-timei)
+        sector_new_test = (sector_test[0]-1,sector_test[1]+1)
+        basis_up = self.bases[sector_test][0]
+        dim_up = len(basis_up)
+        basis_dn = self.bases[sector_test][1]
+        #print(basis_up,basis_dn)
+        #quit()
+        basis_up_new = self.bases[sector_new_test][0]
+        dim_up_new = len(basis_up_new)
+        basis_dn_new = self.bases[sector_new_test][1]
+        for key in self.mapping_cdagc.keys():
+            #print('key',key)
+            #continue
+            r = key[0]
+            sector = key[1]
+            i = key[2]
+            #state_
+            if sector == sector_test:
+                ##############################
+                i_dn = i//dim_up +1
+                i_up = i%dim_up +1
+                #print(i,i_up,i_dn)
+                Iup = basis_up[i_up]
+                Idn = basis_dn[i_dn]
+                ##############################
+                vals = self.mapping_cdagc[key]
+                j = vals[1]
+                j_dn = j//dim_up_new +1
+                j_up = j%dim_up_new +1
+                Jup = basis_up_new[j_up]
+                Jdn = basis_dn_new[j_dn]
+                sgn = vals[2]
+                print('hopping at site ',r,': \n','from state',(self.binp(Iup,length=self.L),self.binp(Idn,length=self.L)),' to  state ',(self.binp(Jup,length=self.L),self.binp(Jdn,length=self.L)),' with sign',sgn,'\n','*'*100)
+        return
+    
+    def testing_mapping(self):
+        '''
+        testing the (1,2) sector for L=2... problem has to be here or on matrix_element calculation...
+        '''
+        self.create_mapping()
+        map = self.mapping_up
+        if self.L != 3:
+            raise ValueError
+        sector = (1,2)
+        index = 0
+        for key in map.keys():
+            if key[1] == sector:
+                index +=1
+                state_in = key[-1]
+                state_out = map[key][1]
+                sign = map[key][-1]
+                print('(',index,')  state in',state_in,'---->state out',state_out,'sign',sign)
+        return
     def State2Ind(self,sector,I_up,I_dn):
         if (I_up is None) or (I_dn is None):
             return None
@@ -484,7 +753,15 @@ class thermodynamics():
         
     def compute_matrix_elements(self, mapping):
         """
-        Compute \\langle n | c^\dagger | m \\rangle in the eigenbasis.
+        Compute <n|O|m> in the eigenbasis given that you have the operator in the occupation basis <j|O|i>
+        Used for:
+                1)The single particle Green's function
+                2)The Spin-Spin Green's function
+
+        Input:
+            mapping(dict)           :Dictionary of the form dict[(j,sector,index_in)] = (sector_new,index_out,sign)
+                                    Where j is the location of the operator O_r, sector and sector_new are the two sectors connected via O ,
+                                    index_in and index_new are indices of states related by O and sign is due to fermionic ordering or JW string.
         """
         matrix_elements = {}
         
@@ -541,7 +818,109 @@ class thermodynamics():
         #while not physically relevant, return also the values with shifted energy.
         N_avg = np.exp(log_N)
         return N_avg
+    def matrix_elements_debug(self,beta):
+        '''
+        Zooming in: L=3 sector (1,2)--->(2,2) does not give equal contribution at different sites...
+        Which sectors have this issue in general????
+        Comparing G_11 and G_00 here only!
+        '''
+        tau = beta/4
+        self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
+        if self.L != 3:
+            print('this debugging is made for L=3 for now')
+            #raise ValueError
+        log_Z = self.partition_function(beta)
+        sec_0_contributions = {}
+        sec_1_contributions = {}
+        sectors_0 = set(self.allowed_transitions(0, 'up'))
+        sectors_1 = set(self.allowed_transitions(1, 'up'))
+        if sectors_0 != sectors_1:
+            print('???')
+            quit()
+        for (sec, sec_new) in sectors_0:
+            #if sec != (1,0):continue
+            sec_0_contributions[sec] =0
+            sec_1_contributions[sec] =0
+            for m in range(len(self.eigenstates[sec])):
+                for n in range(len(self.eigenstates[sec_new])):
+                    spin = 'up'
+                    Em = self.energies[sec][m]
+                    En = self.energies[sec_new][n]
+                    matrix_elements = self.matrix_elements_up if spin == 'up' else self.matrix_elements_dn
+                    amp_0 = matrix_elements[(0, sec, sec_new)][n, m]
+                    amp_1 = matrix_elements[(1, sec, sec_new)][n, m]
+                    log_terms = -beta * Em - tau * (En - Em)
+                    sec_0_contributions[sec]+= (np.abs(amp_0)**2) * np.exp(log_terms - log_Z)
+                    sec_1_contributions[sec]+= (np.abs(amp_1)**2) * np.exp(log_terms - log_Z)
+                    if sec == (1,2):
+                        print('contribution 0',(np.abs(amp_0)**2)) #* np.exp(log_terms - log_Z))
+                        print('contribution 1',(np.abs(amp_1)**2)) #* np.exp(log_terms - log_Z))
+        #print('contributions difference',np.abs(sec_0_contributions[(1,0)]-sec_1_contributions[(1,0)]))
+        for key in sec_0_contributions.keys():
+            if np.abs(sec_0_contributions[key]-sec_1_contributions[key])>1e-10:
+                print('secs contributions not equal',key,np.abs(sec_0_contributions[key]-sec_1_contributions[key]))
+        #print('comparing matrix elements')
+        #amp_0 = matrix_elements[(0,(1,0), (2,0))]
+        #amp_1 = matrix_elements[(1, (1,0), (2,0))]
+        #print(amp_0)
+        print('----')
+        #print(amp_1)
+        return
+    def GreenFuncDebug(self,beta,n_tau,sector,parity):
+        '''
+        do it in a single sector....
+        same as original Green's function but to debug..
+        I want to check if G_{ij} = G(|r_i-r_j|)
+        step(1) G_00 vs G_11 vs G_22 etc
+        step(2) G_r,0 vs G_(r+1),1 ...
 
+        THOUGHTS SO FAR:
+        SGN=TRUE WORKS FINE, ITS ONLY SGN = FALSE THAT FAILS. ALSO EG SGN = FALSE STILL WORKS FOR L=4,DeltaR=2
+        '''
+        if not hasattr(self,"matrix_elements_up"):
+            print('calclulating matrix elements up')
+            self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
+        #####
+        taus = np.linspace(0, beta, num=n_tau)
+        if parity != None:
+            log_Z = self.partition_function_partial(beta,parity=parity)
+        elif sector != None:
+            log_Z = 1
+        else:
+            log_Z = self.partition_function(beta)
+        G = np.zeros((self.L,n_tau), dtype=np.complex128)
+        for i in range(self.L):
+            j = (i)%self.L
+            sectors_i = set(self.allowed_transitions(i, 'up'))
+            sectors_j = set(self.allowed_transitions(j, 'up'))
+            sectors = sectors_i.intersection(sectors_j)
+            if self.verbose>1:print('*'*100,'\n ALLOWED SECTORS FOR SITE',i,': \n',sectors,'\n ','*'*100)
+            for (sec, sec_new) in sectors:
+                if (sector == None) and (parity != None):
+                    sectors_i = [elem for elem in sectors_i if sum(elem[0]) % 2 == parity]
+                    sectors_j = [elem for elem in sectors_j if sum(elem[0]) % 2 == parity]
+                    sectors_i = set(sectors_i)
+                    sectors_j = set(sectors_j)
+                    sectors = sectors_i.intersection(sectors_j)
+                elif (sector != None) and (parity == None):
+                    if (sec not in  sector): continue
+                elif (sector != None) and (parity != None):
+                    raise ValueError
+                #if self.verbose>1:print('now doing sectors',sec,sec_new)
+                for m in range(len(self.eigenstates[sec])):
+                    for n in range(len(self.eigenstates[sec_new])):
+                        spin = 'up'
+                        Em = self.energies[sec][m]
+                        En = self.energies[sec_new][n]
+                        matrix_elements = self.matrix_elements_up if spin == 'up' else self.matrix_elements_dn
+                        amp_j = matrix_elements[(j, sec, sec_new)][n, m]
+                        amp_i = matrix_elements[(i, sec, sec_new)][n, m].conj()
+                        log_terms = -beta * Em - taus * (En - Em)
+                        G[i, :] += amp_i*amp_j * np.exp(log_terms - log_Z)
+                #if sec == (1,2):print('SITE',i,'CONTRIBUTION',sec_contribution)
+           # if self.verbose>1:print('*'*100,'\n GREENS FUNCTION AT SITE ',i,' has elements \n',G[i,:],'\n','*'*100)
+        #if self.verbose>0:print(G)
+        return G
     def GreenFunc(self, beta,n_tau):
         """
         Returns the Green's function for the system. Has size L x L x s x s x Ntau --> L x L x s x Ntau
@@ -575,6 +954,7 @@ class thermodynamics():
                                 amp_i = matrix_elements[(i, sec, sec_new)][n, m].conj()
                                 log_terms = -beta * Em - taus * (En - Em)
                                 G[i, j, spin_idx, :] += amp_i*amp_j * np.exp(log_terms - log_Z)
+                
         return G
 
     def GreenFunc_partial(self, beta,n_tau,parity=0):
@@ -622,6 +1002,147 @@ class thermodynamics():
                                 log_terms = -beta * Em - taus * (En - Em)
                                 G[i, j, spin_idx, :] -= amp_i*amp_j * np.exp(log_terms - log_Z_p) #NOTE: THE UPDATED MINUS SIGN (-= instead of +=)
         return G
+    #################
+    def Spin_correlation_debug(self,beta,n_tau,sector):
+        log_Z = self.partition_function(beta)
+    
+        if not hasattr(self,'mapping_cdagc'):
+            self.create_spin_spin_mapping()
+        ###then create matrix elements
+        if not hasattr(self,"matrix_elements_spin_spin"):
+            print('calclulating matrix elements for spin spin correlations')
+            timei = time.time()
+            self.matrix_elements_spin_spin = self.compute_matrix_elements(mapping=self.mapping_cdagc)
+            timef = time.time()
+            print('TOOK ',timef-timei,' seconds to calculate spin-spin matrix elmements')
+        #sec_pairs holds all pairs of sectors related by c^dagger c
+        sec_pairs = set()
+        for key in self.mapping_cdagc:
+                sec = key[1]
+                sec_new = self.mapping_cdagc[key][0]
+                sec_pairs.add((sec,sec_new))
+        sec_pairs = list(sec_pairs)
+
+        taus = np.linspace(0, 1, num=n_tau)*beta
+        G = np.zeros((self.L, n_tau), dtype=np.complex128)
+        #
+        for (sec, sec_new) in sec_pairs:
+            if (sec not in sector):continue#filter out certain sectors
+            print('sectors',sec,sec_new)
+            for x in range(self.L):
+                    y = (x)%self.L
+                    for m in range(len(self.eigenstates[sec])):
+                        for n in range(len(self.eigenstates[sec_new])):
+                            Em = self.energies[sec][m]
+                            En = self.energies[sec_new][n]
+                            amp_y = self.matrix_elements_spin_spin[(y, sec, sec_new)][n, m]
+                            amp_x = self.matrix_elements_spin_spin[(x, sec, sec_new)][n, m].conj()
+                            log_terms = -beta * Em - taus * (En - Em)
+                            G[x, :] += amp_x*amp_y * np.exp(log_terms - log_Z)
+        return G
+    def Spin_correlation_function(self,beta,n_tau,parity=None):
+        '''
+        Calculates the S^+(\\tau) S^-(0) correlation function
+        -----------------------------------------------------
+        Input:
+        beta(float)             :The INverse temperature of the system
+        n_tau(int)              :At how many imaginary times to calculate the dynamic correlation function
+        parity(0/1 or None)     :Calculate the full or partial Green's function
+        -----------------------------------------------------
+        TODO:       1) Implement parity
+                    2) Check translation invariance 
+        '''
+        #####
+        #internal function to calculate the matrix elements <n|c^\dagger c|m>
+        #####
+        if parity != None:
+            log_Z = self.partition_function_partial(beta,parity)
+        else:
+            log_Z = self.partition_function(beta)
+    
+        if not hasattr(self,'mapping_cdagc'):
+            self.create_spin_spin_mapping()
+        ###then create matrix elements
+        if not hasattr(self,"matrix_elements_spin_spin"):
+            print('calclulating matrix elements for spin spin correlations')
+            timei = time.time()
+            self.matrix_elements_spin_spin = self.compute_matrix_elements(mapping=self.mapping_cdagc)
+            timef = time.time()
+            print('TOOK ',timef-timei,' seconds to calculate spin-spin matrix elmements')
+        #sec_pairs holds all pairs of sectors related by c^dagger c
+        sec_pairs = set()
+        for key in self.mapping_cdagc:
+                sec = key[1]
+                sec_new = self.mapping_cdagc[key][0]
+                sec_pairs.add((sec,sec_new))
+        sec_pairs = list(sec_pairs)
+
+        taus = np.linspace(0, 1, num=n_tau)*beta
+        G = np.zeros((self.L, self.L, n_tau), dtype=np.complex128)
+        #
+        for (sec, sec_new) in sec_pairs:
+            if (parity!=None) and (sum(sec) % 2 != parity):continue#filter out certain sectors
+            print('sectors',sec,sec_new)
+            for x in range(self.L):
+                for y in range(self.L):
+                        for m in range(len(self.eigenstates[sec])):
+                            for n in range(len(self.eigenstates[sec_new])):
+                                Em = self.energies[sec][m]
+                                En = self.energies[sec_new][n]
+                                amp_y = self.matrix_elements_spin_spin[(y, sec, sec_new)][n, m]
+                                amp_x = self.matrix_elements_spin_spin[(x, sec, sec_new)][n, m].conj()
+                                log_terms = -beta * Em - taus * (En - Em)
+                                G[x, y, :] += amp_x*amp_y * np.exp(log_terms - log_Z)
+        return G
+
+    def spectral_function(self,beta,omega,broadening):
+        '''
+        Calculates the spectral function in real space :
+        A(r1,r2,ω) = Z^{-1} \sum_{m,n} [exp(-βE_n)+exp(-βE_m)]<m|c_1|n><n|c^\dagger_2|m> delta(ω - (E_n - E_m)
+        ---------------------------------------------------------
+        Input:
+            beta(float)         :The inverse temperature of the system
+            broadening(float)   :How much to broaden the delta function
+            sum_test_rule(Bool) :Test that the sum rule is satisfied
+            omega(list)         :A list of the form [ω_min,ω_max,ω_steps]
+            kspace(Bool)        :If true, fourier transform
+        Output:
+            A(npc array)        :An array of size L x L x ω_steps
+        '''
+        #0) define broadening function
+        def f_eta(x,eta=broadening):
+            return (1/np.pi)*(eta)/(eta**2 + x**2)
+        #1)get matrix elements and intiialize
+        omegas = np.linspace(omega[0], omega[1], num= omega[2])
+        A = np.zeros((self.L, self.L, omega[2]), dtype=np.complex128) #spectral func
+        if not hasattr(self,"matrix_elements_up"):
+            print('calclulating matrix elements up')
+            self.matrix_elements_up = self.compute_matrix_elements(mapping=self.mapping_up)
+        if not hasattr(self,"matrix_elements_dn"):
+            print('calclulating matrix elements dn')
+            self.matrix_elements_dn = self.compute_matrix_elements(mapping=self.mapping_dn)
+
+        log_Z = self.partition_function(beta)
+        
+        for i in range(self.L):
+            for j in range(self.L):
+                for spin_idx, spin in enumerate(['up', 'down']):
+                    sectors_i = set(self.allowed_transitions(i, spin))
+                    sectors_j = set(self.allowed_transitions(j, spin))
+                    sectors = sectors_i.intersection(sectors_j)
+                    for (sec, sec_new) in sectors:
+                        for m in range(len(self.eigenstates[sec])):
+                            for n in range(len(self.eigenstates[sec_new])):
+                                Em = self.energies[sec][m]
+                                En = self.energies[sec_new][n]
+                                weight = np.exp(-beta*Em - log_Z) + np.exp(-beta*En - log_Z)
+                                matrix_elements = self.matrix_elements_up if spin == 'up' else self.matrix_elements_dn
+                                amp_j = matrix_elements[(j, sec, sec_new)][n, m]
+                                amp_i = matrix_elements[(i, sec, sec_new)][n, m].conj()
+                                A[i, j,:] += amp_i*amp_j * weight * f_eta(omegas)
+                
+        return A
+    #################
     @staticmethod
     def binp(num, length):
         '''

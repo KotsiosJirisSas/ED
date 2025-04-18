@@ -1,0 +1,193 @@
+nohup: ignoring input
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 0 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163594.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 0 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163595.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 0 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163596.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 1 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163597.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 1 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163598.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 1 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163599.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 2 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163600.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 2 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163601.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 2 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163602.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 3 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163603.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 3 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163604.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 3 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163605.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 4 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163606.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 4 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163607.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 4 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163608.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 5 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163609.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 5 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163610.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 5 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163611.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 6 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163612.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 6 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163613.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 6 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163614.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 7 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163615.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 7 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163616.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 7 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163617.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 8 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163618.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 8 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163619.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 8 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163620.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 9 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163621.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 9 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163622.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 9 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163623.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 10 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163624.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 10 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163625.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 10 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163626.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 11 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163627.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 11 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163628.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 11 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163629.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 12 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163630.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 12 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163631.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 12 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163632.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 13 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163633.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 13 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163634.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 13 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163635.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 14 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163636.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 14 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163637.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 14 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163638.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 15 3
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163639.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 15 4
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163640.out
+
+command /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python ED_chains_final.py 15 5
+Submitting job with the following command:/usr/local/shared/slurm/bin/sbatch --signal SIGCONT --no-kill -p long --mem-per-cpu=1024 --nice -n 1 --output=python-%j.out --job-name="30£mins" /mnt/users/kotssvasiliou/ED/utils/python.sh
+Sending program's output to file: /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python-1163641.out
+
