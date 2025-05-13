@@ -2,3 +2,4 @@ run.sh
 run*
 utils/__pycache__/
 *.out
+utils/configs/G_dict.pkl
