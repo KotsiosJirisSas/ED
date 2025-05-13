@@ -26,6 +26,7 @@ import sys
 import gc
 from scipy.special import logsumexp
 import pickle
+from collections import defaultdict
 
 class hubbard_chain():
     '''
@@ -748,31 +749,93 @@ class thermodynamics():
         
         return mapping_op
 
-    def operator_matrix_elements(self,op):
+    def operator_matrix_elements(self,map):
         '''
         Function:
         ----------
-        Turns the operator mapping (which is the matrix elements in state basis) to  a matrix in eigenbasis to be used for correlator calculations \n
+        Turns the operator mapping (which is the matrix elements in state basis) to  a matrix in eigenbasis 
+        to be used for correlator calculations \n
+        Ie computes <n|O|m> in the eigenbasis given that you have the operator in the occupation basis <j|O|i> \n
+
+        Input:
+        ------
+        map(dict):                  A dictionary of the form dict[(r,sector,index_in)] = (sector_new,index_out,sign) 
+                                    w/ r: the location of the operator, sector,sector_new the symmetry sectors related by O,
+                                    index_in & index_out the states related by O and sign the associated phase \n
+        Output:
+        -------
+        mat(dict):                  A dictionary holding info for the matrix <n|O|m>. It has structure
+                                    mat[(r, sec, sec_new)] is an |ℋ|_secnew x |ℋ|_sec matrix                      
         '''
-        raise NotImplementedError
-    def correlator(self,op,parity=None):
+        matrix_elements = {}
+        for (r, sector, ind_in), (sector_new, ind_out, sign) in map.items():
+            if sector not in self.eigenstates or sector_new not in self.eigenstates:
+                print('sector not found?',sector,sector_new)
+                continue
+            eigvecs_sec = self.eigenstates[sector]
+            eigvecs_sec_new = self.eigenstates[sector_new]
+            num_states_sec = eigvecs_sec.shape[0]
+            num_states_sec_new = eigvecs_sec_new.shape[0]
+            
+            matrix_elements.setdefault((r,sector, sector_new), np.zeros((num_states_sec_new, num_states_sec), dtype=np.complex128))
+            for n in range(num_states_sec_new):
+                for m in range(num_states_sec):
+                    matrix_elements[(r,sector, sector_new)][n, m] += (
+                        np.conj(eigvecs_sec_new[ind_out,n]) * sign * eigvecs_sec[ind_in,m]
+                    )
+        return matrix_elements
+    def correlator(self,op,beta,n_tau,parity=None,green_spin = 'up'):
         '''
         Function:
         ----------
-        Using the operator mapping and the operator eigen-matrix elements <m|O|n>, it calculates the dynamical correlator \n
+        Using the operator mapping and the operator eigen-matrix elements <m|O|n>, it calculates the dynamical correlator: \n
+        C(r,r',τ) = <O^\dagger_r(τ) O_r'(0)> = (-1/Z)x Σ_n,m {exp(-(β-τ)Em)exp(-τEn) x [O_r]nm x [O_r']*nm }
+
+        Input:
+        ------
+        op(str):            The operator name
+        beta(float):        The inverse temperature
+        n_tau(int):         The number of imaginary time slices
+        parity:             None/0/1. The parity resolution of the operator
+        green_spin(str)     If op=='green',choose to calculate G_up or G_dn, since G_σσ' ~ δ_σσ'
+
+        Output:
+        -------
+        C(npcarray):        The L x L x Nτ correlator
         '''
-        map = self.create_operator_mapping(op)
+        mapping = self.create_operator_mapping(op)
         if op == 'green':
-            map = map['up']
-        #sec_pairs holds all pairs of sectors related by c^dagger c
+            mapping = mapping[green_spin]
+        mat = self.operator_matrix_elements(map=mapping)
+        #sec_pairs holds all pairs of sectors related by the operator
         sec_pairs = set()
-        for key in map:
+        for key in mapping:
             sec = key[1]
-            sec_new = map[key][0]
+            sec_new = mapping[key][0]
             sec_pairs.add((sec,sec_new))
         sec_pairs = list(sec_pairs)
-        print('sec pairs \n',sec_pairs)
-        raise NotImplementedError
+        if self.verbose>0:print('sec pairs \n',sec_pairs)
+
+        taus = np.linspace(0, beta, num=n_tau)
+        C = np.zeros((self.L, self.L, n_tau), dtype=np.complex128)
+        log_Z = self.logZ(beta,parity)
+
+        #start calculation for the correlator
+        for (sec, sec_new) in sec_pairs:
+            if (parity!=None) and (sum(sec) % 2 != parity):continue#filter out certain sectors
+            if self.verbose>0:print('sectors',sec,sec_new)
+            for r1 in range(self.L):
+                for r2 in range(self.L):
+                        for m in range(len(self.eigenstates[sec])):
+                            for n in range(len(self.eigenstates[sec_new])):
+                                Em = self.energies[sec][m]
+                                En = self.energies[sec_new][n]
+                                amp_r2 = mat[(r2, sec, sec_new)][n, m]
+                                amp_r1 = mat[(r1, sec, sec_new)][n, m].conj()
+                                log_terms = -beta * Em - taus * (En - Em)
+                                C[r1, r2, :] += amp_r1*amp_r2 * np.exp(log_terms - log_Z)
+        return C
+
     ##################
     ###HELPER FUNCS###
     ##################
@@ -1725,11 +1788,39 @@ def reproduce_fig_2_paper():
     plt.legend()
     plt.title('U=16,L=6,n=0.8')
     plt.savefig('/mnt/users/kotssvasiliou/ED/core_scripts/figs/specific_heat_reproduced_fig_2.png',dpi=500)
+def check_TI(C,savefig = True):
+    '''
+    checks translational invariance for a correlator of the form C = L x L x tau
+    '''
+    L, _, T = C.shape
+    r_data = {}
+    cols = ['red','purple','blue','green','pink','black','gray','orange']
+    styles = ['-', '--', '-.', ':','-']
+
+    for r1 in range(L):
+        for r2 in range(L):
+            r = (r1 - r2) % L  # use mod L if PBC
+            if r not in r_data:
+                r_data[r] = []
+            r_data[r].append(C[r1, r2, :])
+
+    plt.figure()
+    for r in sorted(r_data):
+        for c_tau in r_data[r]:
+            plt.plot(range(T), c_tau, c=cols[r],linestyle = styles[r],alpha=0.25)
+    plt.xlabel("$\\tau$")
+    plt.ylabel("$C(r1, r2, \\tau)$")
+    #plt.legend()
+    plt.tight_layout()
+    if savefig == True:
+        plt.savefig('/mnt/users/kotssvasiliou/ED/core_scripts/figs/TI_corr_.png',dpi = 500)
+    return
+    
 #######################################
 if __name__ == "__main__":
     L = 4
-    t = 1;U = 2;V = 0;mu = -1.14
-    params = {'L':L,'verbose':0,'species':'fermion','H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    t = 1;U = 2;V = 1.1;mu = -1.14
+    params = {'L':L,'verbose':1,'species':'fermion','H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
     #params['Nup'] = 3
     #params['Ndn'] = 1
     #params['verbose'] = 0
@@ -1753,4 +1844,7 @@ if __name__ == "__main__":
     params['bases_inv'] = bases_inv
     params['lowestEnergy'] = lowestEnergy
     thermo = thermodynamics(params)
-    thermo.correlator(op='green')
+    Corr = thermo.correlator(op='eta',beta = 10,n_tau= 100,parity = None,green_spin='dn')
+    print(Corr.shape)
+    check_TI(C=Corr,savefig=True)
+
