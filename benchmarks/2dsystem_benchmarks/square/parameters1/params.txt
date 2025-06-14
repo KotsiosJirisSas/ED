@@ -1,0 +1,11 @@
+parameters = {'L':2,
+                  'geometry':'square',
+                  't':1,
+                  'mu':0,
+                  'U':4,
+                  'V':1,
+                  'partial':False,
+                  'projection':False,
+                  'sign':True,
+                  'JW string':True,
+                  'mode':'full'}

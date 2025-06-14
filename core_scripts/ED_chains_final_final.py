@@ -1,3 +1,14 @@
+'''
+Script to perform ED and calculate correlators on a system made up for 1D chains.
+It has three main components:
+    1)The chain_configs class instance whose main property is that for a given geometry it will have an attribute
+    'compressed_data', with keys the representative symetry sectors and as values, all other symmetry sectors related to the rep sector via
+    a point-group symmetry.
+
+    2)The chain class. An instance of this realizes a system of chains eg |||| x \\\\ x ////  in *one* particular symmetry sector, typically chosen to be the representative
+    3)The thermodynamics class. An instance is initialized by a dictionary of representative symmetry sectors, their symmetry-related ones, and the eigenproperties of those sectors.
+    Allows for the calculation of a bunch of observables
+'''
 import os
 import sys
 import numpy as np
@@ -18,7 +29,8 @@ from scipy.special import logsumexp
 from scipy.sparse import SparseEfficiencyWarning
 import warnings
 from numba import njit
-from chain_sections import chains
+sys.path.append('/mnt/users/kotssvasiliou/ED/utils')
+from chain_sections import chains #wtf is this used for????
 import random
 from functools import lru_cache
 import h5py
@@ -38,10 +50,10 @@ warnings.simplefilter("ignore", SparseEfficiencyWarning) #supress warning???
 class chain_configs():
     '''
     An instance of this class contains information about all possible chain configurations.
-    The output will be a set of  equivalence classes that are not related to eachother by the symmetries of the system
-    Within the equivalence class, we have info on
-        0)
+    The output will be a set of  reprsentative symmetry sectors that are not related to eachother by the symmetries of the system
+    Within the rep sector, we have info on
         1)all permutation(symmetry) related configs in the equivalence class
+        2)
 
 
     ---------------------------------------------------------------------
@@ -99,6 +111,7 @@ class chain_configs():
         Generate *some* configurations one by one, classifying them by symmetry equivalence.
         
         """
+        raise NotImplementedError("There is some bug with the code it doesn't build correct configs...")
         electron_count = range(self.L + 1)
         configs_spinup = list(product(electron_count, repeat=self.Nchains))
         configs_spindown = list(product(electron_count, repeat=self.Nchains))
@@ -119,7 +132,8 @@ class chain_configs():
                         self.process_configuration(config)
     
     def process_configuration(self, config):
-        """Determine if a configuration is already accounted for or should be stored as a representative,
+        """
+        Determine if a configuration is already accounted for or should be stored as a representative,
         and calculate its symmetry weight.
         
         Symmetry operations: (s,r,n,m) for TR^2 Rot^r T_1^n T_2^m {|configs>}
@@ -143,7 +157,7 @@ class chain_configs():
         # Generate all symmetry-related configurations
         for n in range(self.L):
             for m in range(self.L):
-                for r in range(Rot_num):  # 0 or 1 or 2 C3 rotations (square lattice)
+                for r in range(Rot_num): 
                     for s in range(2):  # 0 or 1 spin inversions
                         perm = self.identity_permutation()
                         perm = self.track_permutation(perm, self.translation_permutation(n, m))

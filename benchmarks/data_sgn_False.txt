@@ -1,0 +1,21 @@
+MODEL:
+
+H = -t\sum_{\langle i,j \rangle} \sum_{s} (c^\dagger_{i,s}c_{j,s}+h.c.) -\mu \sum_{i,s} n_{i,s} + \frac{U}{2}\sum_{i}(n_i - 1)^2 + V\sum_{\langle i,j \rangle} (n_i - 1)(n_j - 1)
+
+PARAMS:
+params = {'L':6,'sign': False,'H_params':{'t':1,'mu':0,'U':4,'V':0},'diag_params':{'mode':'full'}}
+
+time needed to diagonalize all sectors 15.20768690109253s
+The ground state occured in (n_up,n_down)= (3, 3) : -3.668706178872965
+
+beta	 E 
+1	-1.091511943534861
+2	-2.5998901583236895
+3	-3.18034762323053
+4	-3.4377689547531296
+5	-3.557091044940935
+6	-3.6135540877213748
+7	-3.6408135863516855
+8	-3.6542947068573035
+9	-3.661125599024091
+10	-3.6646617769190315

@@ -1,0 +1,1 @@
+addqueue -c "2hours|ED" -m 2 /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks2/2d/tests2.py 

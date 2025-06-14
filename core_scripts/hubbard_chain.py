@@ -6,7 +6,7 @@ Key points:
 2) Hamiltonian generation and getting the spectrum:
                     Either full or Lanczos but in either case i store (sparesly) the entire Hamiltonian
 3) Calculating thermal properties. Both static and dynamical
-NOTE Latest update: 13 May 2025
+NOTE Latest update: 16 May 2025
 --------------------------------------------------------------------------
 TODO For systems above L = 8, can no longer perform full ED and Lanczos or Kernel Polynomial Methods should be used
 TODO Allow for sparse creation of the matrix. Again,useful for larger system sizes beyong L=6-8
@@ -27,6 +27,7 @@ import gc
 from scipy.special import logsumexp
 import pickle
 from collections import defaultdict
+import h5py
 
 class hubbard_chain():
     '''
@@ -184,10 +185,11 @@ class hubbard_chain():
             #get sign
             if self.species == 'fermion':
                 sgn = self.fermion_sgn(self.binp(s1,length=self.L),self.binp(s2,length=self.L))
+                if (sgn == -1) and (self.verbose>0):print('fermion negative sign',i,j,m)
             elif (self.species == 'mboson') and (i==self.L-1):
                 #parity term
-                print('boundary hop for hc bosons')
                 sgn = (-1)**(bin(s1).count('1'))
+                if (sgn == -1) and (self.verbose>0):print('boson negative sign',i,j,m)
             else:
                 sgn = 1
             #generate all the basis states, since the other spin here is just playing spectator role
@@ -454,6 +456,10 @@ class thermodynamics():
         self.eGS = params['lowestEnergy']
         self.bases = params['bases']
         self.bases_inv = params['bases_inv']
+        if 'JWstring' in params.keys():
+            self.JWstring = params['JWstring']
+        else:
+            self.JWstring = False
         if 'verbose' in params.keys():
             self.verbose = params['verbose']
         else:
@@ -462,18 +468,23 @@ class thermodynamics():
         # SPECIES & BCS#
         ################
         self.species = params['species']
+        if self.species == 'mboson':
+            print('yo sure u want that?')
+            raise ValueError
     def logZ(self,beta,parity):
         '''
         Function:
         ---------
         Calculates the partition function in a given parity sector \n
         
+        NOTE 1 Jun 2025 added new option for a spin resolved parity check aswell!
+        
         TODO Add a generic function to sort parity depending on structure of symmetry sectors, making it compatible with more systems
 
         Input:
         ------
         beta(float):        The inverse temperature \n
-        parity:             None,0 or 1. The parity of the sectors we are considering \n
+        parity:             None,0,1,(i,j). The parity of the sectors we are considering. Either total parity or parity of a given spin. If option is tuple, (i,j), i is the parity 0,1 and j is the spin (0=up,1=dn) \n
 
         Output:
         -------
@@ -486,10 +497,18 @@ class thermodynamics():
             '''
             if parity == None:
                 return True
-            elif (sec[0]+sec[1])%2 == parity:
-                return True
+            elif  not isinstance(parity,tuple):
+                if (sec[0]+sec[1])%2 == parity:
+                    return True
+                else:
+                    return False
             else:
-                return False
+                spin = parity[0]
+                par = parity[1]
+                if (sec[spin])%2 == par:
+                    return True
+                else:
+                    return False
         all_energies = []
         # Gather all energies
         for sectors in self.energies:
@@ -602,6 +621,75 @@ class thermodynamics():
         -------
         mapping_op(dict):      Has keys tuples of the form (r,sec,j) and values (sec_new,j,sign) \n 
         '''
+        def count_ones_between(n, r1, r2, L):
+            '''
+            count 1s in a string between location r1 and location r2 = (r1 + Delta r)%L
+            '''
+            count = 0
+            if r2 > r1:
+                # Straightforward range: r1+1 to r2-1
+                for i in range(r1 + 1, r2):
+                    if (n >> i) & 1:
+                        count += 1
+            elif r2 < r1:
+                # Wrap-around case: r1+1 to L-1, then 0 to r2-1
+                for i in range(r1 + 1, L):
+                    if (n >> i) & 1:
+                        count += 1
+                for i in range(0, r2):
+                    if (n >> i) & 1:
+                        count += 1
+            # if r1 == r2, the range is empty, return 0
+            return count
+        def apply_sc_op(I_up,I_dn,r):
+            '''
+             Apply c_{↑r+1} c_{↑r} to a state (Iup + 2^L *Idn).
+            '''
+            r2 = (r+1)%self.L
+            if ((I_up >> r2)&1 == 0) or (((I_up >> r)&1 == 0))==True: # operator cant act on this
+                return None, None, None
+            J_up = I_up ^ (1 << r)#replace 1 with 0 at r
+            J_up = J_up ^ (1 << r2)#replace 1 with 0 at r2
+            # Compute sign factor (count fermions between 0 and r-1)
+            if (self.species == 'fermion') or (self.JWstring):#if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                if r == self.L-1:#bond crosses boundary
+                    sign = (-1) ** (bin(I_up).count('1') - 1)#exclude the 1 that is guaranteed to be at final site
+                else:
+                    sign = +1
+            else:
+                sign = +1
+            return J_up,I_dn,sign
+        def apply_dens_op(I_up,I_dn,r):
+            if (I_up >> r)&1 == 0: # operator cant act on this
+                return None, None, None
+            sign = 1
+            return I_up,I_dn,sign
+
+        def apply_bond_op(I_up,I_dn,r):
+            '''
+             Apply c†_{↑r+1} c_{↑r} to a state (Iup + 2^L *Idn).
+            '''
+            DeltaR = 2
+            r2 = (r+DeltaR)%self.L
+            if ((I_up >> r2)&1 == 1) or (((I_up >> r)&1 == 0))==True: # operator cant act on this
+                return None, None, None
+            J_up = I_up ^ (1 << r)#replace 1 with 0 at r
+            J_up = J_up | (1 << r2)#replace 0 with 1 at r2
+            # Compute sign factor (count fermions between 0 and r-1)
+            if (self.species == 'fermion'):#if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                if r == self.L-1:#bond crosses boundary
+                    sign = (-1) ** (bin(I_up).count('1') - 1)#exclude the 1 that is guaranteed to be at final site
+                    if (self.JWstring) and (sign == -1):
+                        print('negative sign',I_up,I_dn,r)
+                else:
+                    sign = +1
+            elif  (self.JWstring):
+                sign = (-1)**count_ones_between(I_up,r1=r,r2=r2,L=self.L)
+                if (sign == -1) and (DeltaR==1):
+                    print('????? should have negatives in this case for Delta r =1')
+            else:
+                sign = +1
+            return J_up,I_dn,sign
         def apply_c_dagger_c(I_up,I_dn,r):
             """
             Apply c†_{↓r} c_{↑r} to a state (Iup + 2^L *Idn).
@@ -626,13 +714,17 @@ class thermodynamics():
             J_up = I_up ^ (1 << r)#replace 1 with 0 at r
             J_dn = I_dn | (1 << r)#replace 0 with 1 at r
             # Compute sign factor (count fermions between 0 and r-1)
-            if (self.species == 'fermion') or (self.species == 'mboson'):#if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
-                sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
-                #BUG shouldnt this count all the rest of the electrons of the down species instead of only those to the left?
+            if (self.species == 'fermion') or (self.JWstring):#if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                phase_up_left = (bin(I_up & ((1 << r) - 1)).count('1'))#from the c_{↑r}
+                phase_dn_left = (bin(I_dn & ((1 << r) - 1)).count('1'))#from the c†_{↓r}
+                phase_dn_total = (bin(I_up).count('1')-1)#from the c†_{↓r} due to total fock space ordering. The extra minus is because this is meant to be calculated on the intermediate state ie c_{↑r}|I_up>
+                sign = (-1) ** (phase_up_left + phase_dn_left + phase_dn_total)
+                #sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
+                #BUG shouldnt this count all the rest of the electrons of the up species instead of only those to the left?
             else:
                 sign = +1
             return J_up,J_dn,sign
-
+        
         def apply_c_c(I_up,I_dn,r):     
             """
             Apply c_{↓r} c_{↑r} to a state (Iup+2^LIdn).
@@ -656,12 +748,43 @@ class thermodynamics():
             J_up = I_up ^ (1 << r)#replace 1 with 0 at r
             J_dn = I_dn ^ (1 << r)#replace 1 with 0 at r
             # Compute sign factor (count fermions between 0 and r-1)
-            if (self.species == 'fermion') or (self.species == 'mboson'): #if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+            if (self.species == 'fermion') or (self.JWstring): #if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
+                phase_up_left = (bin(I_up & ((1 << r) - 1)).count('1'))#from the c_{↑r}
+                phase_dn_left = (bin(I_dn & ((1 << r) - 1)).count('1'))#from the c_{↓r}
+                phase_dn_total = (bin(I_up).count('1')-1)#from the c_{↓r} due to total fock space ordering. The extra minus is because this is meant to be calculated on the intermediate state ie c_{↑r}|I_up>
+                sign = (-1) ** (phase_up_left + phase_dn_left + phase_dn_total)
+                #sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
+            else:
+                sign = +1
+            return J_up,J_dn,sign
+        def apply_c_c_old(I_up,I_dn,r):     
+            """
+            Apply c_{↓r} c_{↑r} to a state (Iup+2^LIdn).
+            Ordering:
+            |full> = c^\dagger_{L,up}...c^\dagger_{1,up} c^\dagger_{L,down}...c^\dagger_{1,down} |0>
+            ------------------------
+            Input:
+                I_up(int)           :The decimal representation of spin-up component of state
+                I_dn(int)           :The decimal representation of spin-dn component of state
+                r(int)              :The location of application of the operator
+            Output:
+                J_up(int)           :The decimal representation of spin-up component of new state
+                J_dn(int)           :The decimal representation of spin-dn component of new state
+                sgn(\pm 1)          :The associated sign
+            -----------------------------
+            If output is None then that means state cannot support this c^\dagger c term
+            
+            """
+            if ((I_dn >> r)&1 == 0) or (((I_up >> r)&1 == 0))==True: # hopping not possible
+                return None, None, None
+            J_up = I_up ^ (1 << r)#replace 1 with 0 at r
+            J_dn = I_dn ^ (1 << r)#replace 1 with 0 at r
+            # Compute sign factor (count fermions between 0 and r-1)
+            if (self.species == 'fermion') or (self.JWstring): #if we are dealing either with fermions or with Bosons+JW string, this erm might have a sign
                 sign = (-1) ** ((bin(I_up & ((1 << r) - 1)).count('1')) + (bin(I_dn & ((1 << r) - 1)).count('1')))
             else:
                 sign = +1
             return J_up,J_dn,sign
-        
         def apply_c(I_s, r,I_rest=None):
             """
             Given a state of spin s represented by its decimal I_s, find the state with decimal I_s2 that is connected to it via creation operator
@@ -681,21 +804,106 @@ class thermodynamics():
                 return None, None
             I_s2 = I_s | (1 << r)
             # Compute sign factor (count fermions to the left)
-            if (self.species == 'fermion') or (self.species == 'mboson'):
+            if (self.species == 'fermion') or (self.JWstring):
                 sign = (-1) ** ((bin(I_s & ((1 << r) - 1)).count('1')) + (bin(I_rest).count('1') if I_rest is not None else 0))
             else:
                 sign = +1
             return I_s2, sign
+        def apply_c_zero(I_s,r1,r2):
+            '''
+            Calculates <i|c_{r1,s} c^\dagger_{r2,s}|j>
+            for the case of bosons with JW string. Works the same way with both spins, since the only JW string that's leftover is the one between r,s and r',s
+            '''
+            if (self.species != 'boson') or (self.JWstring == False):
+                raise ValueError
+            if r1 == r2:
+                if (I_s >> r2) & 1:
+                    return None,None
+                else:
+                    return I_s,+1
+            else:
+                if ((I_s >> r2) & 1) or not((I_s >> r1) & 1):  # If site j is already occupied, return None
+                    return None, None
+                I_s2 = I_s | (1 << r2)#replace 0 with 1 at r2
+                I_s2 = I_s2 ^ (1 << r1)#replace 1 with 0 at r1
+                # Compute sign factor (count fermions between the two sites)
+                if r1>r2:
+                    sign = count_ones_between(I_s,r2,r1,L=self.L)
+                    sign = -1*sign#from the extra 1 at r2
+                else:
+                    sign =  count_ones_between(I_s,r1,r2,L=self.L)
+                return I_s, sign
+        def apply_c_zero_2(I_s,r1,r2):
+            '''
+            NOTE I THINK THE OTHER APPLY Czero HAS AN ISSUE
+            Calculates <i|c_{r1,s} c^\dagger_{r2,s}|j>
+            for the case of bosons with JW string. Works the same way with both spins, since the only JW string that's leftover is the one between r,s and r',s
+            '''
+            if (self.species != 'boson') or (self.JWstring == False):
+                raise ValueError
+            if r1 == r2:
+                if (I_s >> r2) & 1:
+                    return None,None
+                else:
+                    return I_s,+1
+            else:
+                if ((I_s >> r2) & 1):#r2 already full
+                    return None,None
+                I_s1 = I_s | (1 << r2)#replace 0 with 1 at r2
+                sgn1 = 1#TODO
+                if not ((I_s1 >> r1)& 1):#r1 already empty
+                    return None,None
+                I_s2 = I_s1 & ~(1 << r1)
+                sgn2 = 1#TODO
+                return I_s2,sgn1*sgn2
+        def apply_c_zero_3(I_s,r1,r2):
+            '''
+            TODO:FIRST ONE HAS ANE RRROR!!!!
+            Calculates <i|c_{r1,s} c^\dagger_{r2,s}|j>
+            for the case of bosons with JW string. Works the same way with both spins, since the only JW string that's leftover is the one between r,s and r',s
+            '''
+            if (self.species != 'boson') or (self.JWstring == False):
+                raise ValueError
+            if r1 == r2:
+                if (I_s >> r2) & 1:
+                    return None,None
+                else:
+                    return I_s,+1
+            else:
+                if ((I_s >> r2) & 1) or not((I_s >> r1) & 1):  # If site j is already occupied, return None
+                    return None, None
+                I_s2 = I_s | (1 << r2)#replace 0 with 1 at r2
+                I_s2 = I_s2 ^ (1 << r1)#replace 1 with 0 at r1
+                # Compute sign factor (count fermions between the two sites)
+                if r1>r2:
+                    sign = count_ones_between(I_s,r2,r1,L=self.L)
+                    sign = -1*sign#from the extra 1 at r2
+                else:
+                    sign =  count_ones_between(I_s,r1,r2,L=self.L)
+                return I_s2, sign
+                
 
         if op == 'green':
             apply_op = apply_c
+        elif op == 'green0':
+            apply_op = apply_c_zero
+        elif op == 'green03':
+            apply_op = apply_c_zero_3
         elif op == 'spinspin':
             apply_op = apply_c_dagger_c
         elif op == 'eta':
             apply_op = apply_c_c
+        elif op == 'etaold':
+            apply_op = apply_c_c_old
+        elif op == 'bond':
+            apply_op = apply_bond_op
+        elif op == 'dens':
+            apply_op = apply_dens_op
+        elif op == 'sc':
+            apply_op = apply_sc_op
         else:
             raise ValueError
-        if op != 'green':
+        if (op != 'green') and (op != 'green0') and (op != 'green03'):
             mapping_op = {}
             for r in range(self.L):#location of operator
                 for sector in self.bases:
@@ -706,10 +914,14 @@ class thermodynamics():
                             I_dn = sec_basis_dn[state_dn]
                             J_up,J_dn,sign = apply_op(I_up,I_dn,r)
                             if J_up == None:continue#skip this (I_up,I_dn) state
-                            if op == 'spinspin':
+                            if (op == 'spinspin') or (op == 'spinspinold'):
                                 sector_new = (sector[0]-1, sector[1]+1)
-                            elif op == 'eta':
+                            elif (op == 'eta') or (op == 'etaold'):
                                 sector_new = (sector[0]-1, sector[1]-1)
+                            elif (op == 'bond') or (op == 'dens'):
+                                sector_new = sector
+                            elif op == 'sc':
+                                sector_new = (sector[0]-2, sector[1])
                             #now turn decimal representation of states to indices
                             i = self.State2Ind(sector,I_up,I_dn)
                             j = self.State2Ind(sector_new,J_up,J_dn)
@@ -727,11 +939,11 @@ class thermodynamics():
                         I_dn = sec_basis_dn[state_dn]
                         for j in range(self.L):
                             #apply creation operators
-                            I_up2,sign_up = apply_op(I_up,j)
+                            I_up2,sign_up = apply_op(I_up,j,I_rest=None)
                             if I_up2 != None:
                                 #I_new_up = I_up2+I_dn*(2**self.L)
                                 sector_new_up = (sector[0]+1, sector[1])
-                            I_dn2,sign_dn = apply_op(I_dn,j,I_up)
+                            I_dn2,sign_dn = apply_op(I_dn,j,I_rest = I_up)
                             if I_dn2 != None:
                                 #I_new_dn = I_up+I_dn2*(2**self.L)
                                 sector_new_dn = (sector[0], sector[1]+1)
@@ -746,10 +958,44 @@ class thermodynamics():
                                 mapping_dn[(j,sector,ind_in)] = (sector_new_dn,ind_out_dn,sign_dn)  
             mapping_op['up'] = mapping_up
             mapping_op['dn'] = mapping_dn
+
+
+        elif (op == 'green0') or (op == 'green03'):
+            #only does up_spins for now
+            #mapping_op = {}
+            mapping_up = {}
+            mapping_dn = {}
+            for sector in self.bases:
+                sec_basis_up,sec_basis_dn = self.bases[sector]
+                for state_up in sec_basis_up:
+                    I_up = sec_basis_up[state_up]
+                    for state_dn in sec_basis_dn:
+                        I_dn = sec_basis_dn[state_dn]
+                        for r1 in range(self.L):
+                            for r2 in range(self.L):
+                                I_up2,sign_up = apply_op(I_up,r1,r2)
+                                if I_up2 != None:
+                                    sector_new_up = (sector[0], sector[1])
+                                #I_dn2,sign_dn = apply_op(I_dn,r1,r2)
+                                #if I_dn2 != None:
+                                    #I_new_dn = I_up+I_dn2*(2**self.L)
+                                    #sector_new_dn = (sector[0], sector[1])
+                                # turn states (I's) into indices
+                                #print(I_up,I_dn,I_up2,I_dn2)
+                                ind_in = self.State2Ind(sector,I_up,I_dn)
+                                ind_out_up = self.State2Ind(sector_new_up,I_up2,I_dn)
+                                #ind_out_dn = self.State2Ind(sector_new_dn,I_up,I_dn2)
+                                if ind_out_up is not None:
+                                    mapping_up[(r1,r2,sector,ind_in)] = (sector_new_up,ind_out_up,sign_up)
+                                #if ind_out_dn is not None:
+                                #    mapping_dn[(r1,r2,sector,ind_in)] = (sector_new_dn,ind_out_dn,sign_dn)  
+            #mapping_op['up'] = mapping_up
+            #mapping_op['dn'] = mapping_dn
+            mapping_op = mapping_up
         
         return mapping_op
 
-    def operator_matrix_elements(self,map):
+    def operator_matrix_elements(self,map,flag_green0=False):
         '''
         Function:
         ----------
@@ -762,27 +1008,47 @@ class thermodynamics():
         map(dict):                  A dictionary of the form dict[(r,sector,index_in)] = (sector_new,index_out,sign) 
                                     w/ r: the location of the operator, sector,sector_new the symmetry sectors related by O,
                                     index_in & index_out the states related by O and sign the associated phase \n
+        flag_green0(Bool):          A flag treating system differently if operator is green0
         Output:
         -------
         mat(dict):                  A dictionary holding info for the matrix <n|O|m>. It has structure
                                     mat[(r, sec, sec_new)] is an |ℋ|_secnew x |ℋ|_sec matrix                      
         '''
-        matrix_elements = {}
-        for (r, sector, ind_in), (sector_new, ind_out, sign) in map.items():
-            if sector not in self.eigenstates or sector_new not in self.eigenstates:
-                print('sector not found?',sector,sector_new)
-                continue
-            eigvecs_sec = self.eigenstates[sector]
-            eigvecs_sec_new = self.eigenstates[sector_new]
-            num_states_sec = eigvecs_sec.shape[0]
-            num_states_sec_new = eigvecs_sec_new.shape[0]
-            
-            matrix_elements.setdefault((r,sector, sector_new), np.zeros((num_states_sec_new, num_states_sec), dtype=np.complex128))
-            for n in range(num_states_sec_new):
-                for m in range(num_states_sec):
-                    matrix_elements[(r,sector, sector_new)][n, m] += (
-                        np.conj(eigvecs_sec_new[ind_out,n]) * sign * eigvecs_sec[ind_in,m]
-                    )
+        if flag_green0 == False:
+            matrix_elements = {}
+            for (r, sector, ind_in), (sector_new, ind_out, sign) in map.items():
+                if sector not in self.eigenstates or sector_new not in self.eigenstates:
+                    print('sector not found?',sector,sector_new)
+                    continue
+                eigvecs_sec = self.eigenstates[sector]
+                eigvecs_sec_new = self.eigenstates[sector_new]
+                num_states_sec = eigvecs_sec.shape[0]
+                num_states_sec_new = eigvecs_sec_new.shape[0]
+                
+                matrix_elements.setdefault((r,sector, sector_new), np.zeros((num_states_sec_new, num_states_sec), dtype=np.complex128))
+                for n in range(num_states_sec_new):
+                    for m in range(num_states_sec):
+                        matrix_elements[(r,sector, sector_new)][n, m] += (
+                            np.conj(eigvecs_sec_new[ind_out,n]) * sign * eigvecs_sec[ind_in,m]
+                        )
+        elif flag_green0 == True:
+            matrix_elements = {}
+            for (r1,r2, sector, ind_in), (sector_new, ind_out, sign) in map.items():
+                if sector not in self.eigenstates or sector_new not in self.eigenstates:
+                    print('sector not found?',sector,sector_new)
+                    continue
+                eigvecs_sec = self.eigenstates[sector]
+                eigvecs_sec_new = self.eigenstates[sector_new]
+                num_states_sec = eigvecs_sec.shape[0]
+                num_states_sec_new = eigvecs_sec_new.shape[0]
+                
+                matrix_elements.setdefault((r1,r2,sector, sector_new), np.zeros((num_states_sec_new, num_states_sec), dtype=np.complex128))
+                for n in range(num_states_sec_new):
+                    for m in range(num_states_sec):
+                        matrix_elements[(r1,r2,sector, sector_new)][n, m] += (
+                            np.conj(eigvecs_sec_new[ind_out,n]) * sign * eigvecs_sec[ind_in,m]
+                        )
+
         return matrix_elements
     def correlator(self,op,beta,n_tau,parity=None,green_spin = 'up'):
         '''
@@ -798,19 +1064,46 @@ class thermodynamics():
         n_tau(int):         The number of imaginary time slices
         parity:             None/0/1. The parity resolution of the operator
         green_spin(str)     If op=='green',choose to calculate G_up or G_dn, since G_σσ' ~ δ_σσ'
-
         Output:
         -------
         C(npcarray):        The L x L x Nτ correlator
         '''
+        def parity_check_basic(sec,parity):
+            '''
+            NOTE Same as in logZ... just make it a class property....
+            Checks the parity of a sector, if required
+            works for sec = (sec0,sec1) = (N_up,N_dn)
+            '''
+            if parity == None:
+                return True
+            elif  not isinstance(parity,tuple):
+                if (sec[0]+sec[1])%2 == parity:
+                    return True
+                else:
+                    return False
+            else:
+                spin = parity[0]
+                par = parity[1]
+                if (sec[spin])%2 == par:
+                    return True
+                else:
+                    return False
         mapping = self.create_operator_mapping(op)
         if op == 'green':
             mapping = mapping[green_spin]
-        mat = self.operator_matrix_elements(map=mapping)
+        if (op == 'green0') or (op == 'green03'):
+            flag = True
+        else:
+            flag = False
+        mat = self.operator_matrix_elements(map=mapping,flag_green0=flag)
         #sec_pairs holds all pairs of sectors related by the operator
+        if (op != 'green0') and (op != 'green03'):
+            sec_loc = 1#location of sector info in dictionary
+        else:
+            sec_loc = 2#location of sector info in dictionary
         sec_pairs = set()
         for key in mapping:
-            sec = key[1]
+            sec = key[sec_loc]
             sec_new = mapping[key][0]
             sec_pairs.add((sec,sec_new))
         sec_pairs = list(sec_pairs)
@@ -821,19 +1114,35 @@ class thermodynamics():
         log_Z = self.logZ(beta,parity)
 
         #start calculation for the correlator
-        for (sec, sec_new) in sec_pairs:
-            if (parity!=None) and (sum(sec) % 2 != parity):continue#filter out certain sectors
-            if self.verbose>0:print('sectors',sec,sec_new)
-            for r1 in range(self.L):
-                for r2 in range(self.L):
-                        for m in range(len(self.eigenstates[sec])):
-                            for n in range(len(self.eigenstates[sec_new])):
-                                Em = self.energies[sec][m]
-                                En = self.energies[sec_new][n]
-                                amp_r2 = mat[(r2, sec, sec_new)][n, m]
-                                amp_r1 = mat[(r1, sec, sec_new)][n, m].conj()
-                                log_terms = -beta * Em - taus * (En - Em)
-                                C[r1, r2, :] += amp_r1*amp_r2 * np.exp(log_terms - log_Z)
+        if (op != 'green0') and (op != 'green03'):
+            for (sec, sec_new) in sec_pairs:
+                if not parity_check_basic(sec,parity): continue # filters out certain sectors
+                #if (parity!=None) and (sum(sec) % 2 != parity):continue# NOTE filter out certain sectors. more basic version of check. Now replaced with the function
+                if self.verbose>0:print('sectors',sec,sec_new)
+                for r1 in range(self.L):
+                    for r2 in range(self.L):
+                            for m in range(len(self.eigenstates[sec])):
+                                for n in range(len(self.eigenstates[sec_new])):
+                                    Em = self.energies[sec][m]
+                                    En = self.energies[sec_new][n]
+                                    amp_r2 = mat[(r2, sec, sec_new)][n, m]
+                                    amp_r1 = mat[(r1, sec, sec_new)][n, m].conj()
+                                    log_terms = -beta * Em - taus * (En - Em)
+                                    C[r1, r2, :] += amp_r1*amp_r2 * np.exp(log_terms - log_Z)
+        if (op == 'green0') or (op == 'green03'):
+            for (sec, sec_new) in sec_pairs:
+                if not parity_check_basic(sec,parity): continue # filters out certain sectors
+                #if (parity!=None) and (sum(sec) % 2 != parity):continue## NOTE filter out certain sectors. more basic version of check. Now replaced with the function
+                if self.verbose>0:print('sectors',sec,sec_new)
+                for r1 in range(self.L):
+                    for r2 in range(self.L):
+                            if (r1,r2, sec, sec_new) in mat.keys():
+                                for m in range(len(self.eigenstates[sec])):
+                                    #sec = sec_new here.
+                                    Em = self.energies[sec][m]
+                                    amp = mat[(r1,r2, sec, sec_new)][m, m]
+                                    log_terms = -beta * Em
+                                    C[r1, r2, :] += amp* np.exp(log_terms - log_Z)
         return C
 
     ##################
@@ -1795,7 +2104,7 @@ def check_TI(C,savefig = True):
     L, _, T = C.shape
     r_data = {}
     cols = ['red','purple','blue','green','pink','black','gray','orange']
-    styles = ['-', '--', '-.', ':','-']
+    styles = ['-', '--', '-.', ':','-','-.']
 
     for r1 in range(L):
         for r2 in range(L):
@@ -1815,36 +2124,407 @@ def check_TI(C,savefig = True):
     if savefig == True:
         plt.savefig('/mnt/users/kotssvasiliou/ED/core_scripts/figs/TI_corr_.png',dpi = 500)
     return
-    
-#######################################
-if __name__ == "__main__":
-    L = 4
-    t = 1;U = 2;V = 1.1;mu = -1.14
-    params = {'L':L,'verbose':1,'species':'fermion','H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
-    #params['Nup'] = 3
-    #params['Ndn'] = 1
-    #params['verbose'] = 0
-    #chain = hubbard_chain(params)
-    #chain.build_ham()
-    #H = chain.Hamiltonian
-    #plt.imshow(H.T,origin='lower')
-    #plt.colorbar()
-    #plt.savefig('figs/H.png',dpi=500)
-    #EDFullSpectrum(params)
-    #mus = np.linspace(-0.8,-0.3,num=50)[24]
-    #print(mus)
-    #quit()
-    #mu_vs_filling(params,num=50)
-    #cv_vs_temp(params,num = 100)
-    #reproduce_fig_3_paper()
+def observable_collapse(C,beta,mode = 'average',save_fig = None,title = None):
+    '''
+    Given C(r_i,r_j,tau) returns C with keys the dissplacements r and values arrays of length Ntau
+    mode = average:
+        average over arrays of each key
+    mode = check_ti:
+    checks if each array is the same 
+    '''
+    L = C.shape[0]
+    Ntau = C.shape[-1]
+    C_r = {}
+    for r1 in range(L):
+        for r2 in range(L):
+            r = (r1 - r2) % L  
+            if r not in C_r:
+                C_r[r] = []
+            C_r[r].append(C[r1, r2, :])
+    if mode == 'check':
+        print('checking TI')
+        for r in C_r:
+            print('len C_r',len(C_r[r]),C_r[r][0].shape)
+            if len(C_r[r])>1:
+                all_close = all(np.allclose(C_r[r][0], dat) for dat in C_r[r][1:])
+                print(f'Is r={r} Translationally invariant?',all_close)
+                if all_close == True:
+                    del C_r[r][1:]
+            print('len C_r',len(C_r[r]),C_r[r][0].shape)
+    if mode == 'average':
+        for r in C_r:
+            avg = np.zeros_like(C_r[r][0])
+            for dat in C_r[r]:
+                avg += dat
+            avg *= 1./L
+            C_r[r][0] = avg
+            del C_r[r][1:]
+    if save_fig is not None:
+        for r in sorted(C_r):
+            if r != 1:
+                continue
+            for c_tau in C_r[r]:
+                plt.plot((beta*1./Ntau)*np.arange(Ntau), c_tau,alpha=0.5,label=f'$r={r}$')
+        plt.xlabel("$\\tau$")
+        #plt.title("$B(r=r_1-r_2;\\tau) = B(r_1,r_2;\\tau)$")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(save_fig + title,dpi = 500)
+    return C_r
+def partial_Zs(params,nbetas=100):
+    '''
+    Investigates the behaviour of the partial partition functions.
+    '''
+    thermo = thermodynamics(params)
+    Z_1 = []
+    Z_0 = []
+    betas = np.linspace(0.5,20,num=nbetas)
+    for beta in betas:
+        Z_0.append(np.exp(thermo.logZ(beta,parity = 0)))
+        Z_1.append(np.exp(thermo.logZ(beta,parity = 1)))
+        if np.abs((Z_0[-1] + Z_1[-1]) - np.exp(thermo.logZ(beta,parity = None)))>1e-5:
+            print(np.abs((Z_0[-1] + Z_1[-1]) - np.exp(thermo.logZ(beta,parity = None))))
+            raise ValueError
+    plt.plot(1/betas,np.array(Z_1)/np.array(Z_0))
+    plt.xlabel('$T$')
+    plt.ylabel('Z_1/Z_0')
+    plt.savefig('core_scripts/figs/partial_Z.png')
+    return
+def TI_greens_func():
+    '''
+    '''
+    return
+def generate_benchmark_data(params,out = 'results.h5'):
+    '''
+    All info needed for Benchmarking with SSE in an h5 file
+    -----------------------------------------------------------
+    params: are the hamiltonian params to be fed into EDfullSpectrum
+    out:    Output name
+    '''
+    if params['species'] != 'boson':raise ValueError
     energies,eigenstates,bases,bases_inv,lowestEnergy = EDFullSpectrum(params)
     params['energies'] = energies
     params['eigenstates'] = eigenstates
     params['bases'] = bases
     params['bases_inv'] = bases_inv
     params['lowestEnergy'] = lowestEnergy
+    params['JWstring'] = True
     thermo = thermodynamics(params)
-    Corr = thermo.correlator(op='eta',beta = 10,n_tau= 100,parity = None,green_spin='dn')
-    print(Corr.shape)
-    check_TI(C=Corr,savefig=True)
+    #####################
+    # E,N ns beta
+    Beta_max = 10
+    Betas = np.linspace(start=1,stop=Beta_max,num=10,endpoint=True)
+    Es = []
+    Ns = []
+    print('GS:',lowestEnergy)
+    for beta in Betas:
+        Es.append(thermo.H_moments(beta=beta)[1])
+        Ns.append(thermo.N_moments(beta=beta)[0])
+    #####################
+    #parity resolved green's function at tau = 0
+    thermo = thermodynamics(params)
+    logZ_0 = thermo.logZ(beta=Beta_max,parity = 0)
+    logZ_1 = thermo.logZ(beta=Beta_max,parity = 1)
+    G_0_up = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 0,green_spin='up')
+    G_0_dn = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 0,green_spin='dn')
+    G_1_up = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 1,green_spin='up')
+    G_1_dn = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 1,green_spin='dn')
+    if np.allclose(G_0_dn,G_0_up) and np.allclose(G_1_dn,G_1_up):
+        comp_0 = np.sum(np.abs(G_0_up.imag)) / np.sum(np.abs(G_0_up))
+        comp_1 = np.sum(np.abs(G_1_up.imag)) / np.sum(np.abs(G_1_up))
+        if (comp_0 <1e-8) and (comp_1<1e-8):
+            G_0_up = G_0_up.real
+            G_1_up = G_1_up.real
+        else:
+            raise ValueError
+        G_0 = {}
+        G_1 = {}
+        #group by distance
+        for i in range(params['L']):
+            for j in range(params['L']):
+                r = (i-j)%params['L']
+                if r not in G_0.keys():
+                    G_0[r] = []
+                if r not in G_1.keys():
+                    G_1[r] = []
+                G_0[r].append(G_0_up[i,j,0])
+                G_1[r].append(G_1_up[i,j,0])
+        #reduce to translationally invariant....
+        #we dont actually have translational invariance soooooo
+        '''
+        for r in G_0.keys():
+            if len(G_0[r])>1:
+                all_close = all(np.allclose(G_0[r][0], dat,rtol=1e-6) for dat in G_0[r][1:])
+                if all_close == True:
+                    del G_0[r][1:]
+                else:
+                    print(G_0[r])
+                    #raise ValueError
+            if len(G_1[r])>1:
+                all_close = all(np.allclose(G_1[r][0], dat) for dat in G_1[r][1:])
+                if all_close == True:
+                    del G_1[r][1:]
+                else:
+                    continue
+                    #raise ValueError
+        '''
+    else:
+        print('GREEN FUNCTIONS NOT SPIN INDPT?')
+        raise ValueError
+    ########################
+    #averaged  correlators for green's function, spin-spin and eta
+    n_tau = 11
+    taus = np.linspace(0,Beta_max, num=n_tau)
+    Green = thermo.correlator(op='green',beta = Beta_max,n_tau= n_tau,parity = None,green_spin='up')
+    Spin = thermo.correlator(op='spinspin',beta = Beta_max,n_tau= n_tau,parity = None)
+    Eta =  thermo.correlator(op='eta',beta = Beta_max,n_tau= n_tau,parity = None)
+    #keep real part
+    comp_1 = np.sum(np.abs(Green.imag)) / np.sum(np.abs(Green))
+    comp_2 = np.sum(np.abs(Spin.imag)) / np.sum(np.abs(Spin))
+    comp_3 = np.sum(np.abs(Eta.imag)) / np.sum(np.abs(Eta))
+    if (comp_1 <1e-8) and (comp_2<1e-8) and (comp_3<1e-8):
+        Green = Green.real
+        Spin = Spin.real
+        Eta = Eta.real
+    else:
+        raise ValueError
+    #
+    Green_dat = observable_collapse(C=Green,beta = Beta_max,mode = 'average')
+    Spin_dat = observable_collapse(C=Spin,beta = Beta_max,mode = 'average')
+    Eta_dat = observable_collapse(C=Eta,beta = Beta_max,mode = 'average')
+    ##########################
+    ##########################
+    ##########################
+    #save in hdf5 file
+    ##########################
+    ##########################
+    ##########################
+    params_save = params['H_params'].copy()
+    params_save['beta'] = Beta_max
+    params_save['taus'] = taus
+    with h5py.File(out, 'w') as f:
+    # Save parameters as attributes
+        param_grp = f.create_group('params')
+        for k, v in params_save.items():
+            if isinstance(v, np.ndarray):
+                param_grp.create_dataset(k, data=v)
+            else:
+                param_grp.attrs[k] = v
+        
+        # G_0 and G_1 as groups
+        for name, dictionary in {'G_0': G_0, 'G_1': G_1,'Greens':Green_dat,'SpinSpin':Spin_dat,'Pairing':Eta_dat}.items():
+            grp = f.create_group(name)
+            for k, arr in dictionary.items():
+                grp.create_dataset(str(k), data=arr)
+        f.create_dataset('logZ_0', data=logZ_0)
+        f.create_dataset('logZ_1', data=logZ_1)
+    return    
+def compare_spectra(params):
+    '''
+    Q: is it true that PBC fermions and mBC hc bosons have same spectra?
+    '''
+    for L in [2,3]:
+        print(params['H_params']['mu'])
+        params['L'] = L
+        params['species'] = 'fermion'
+        energies_f = EDFullSpectrum(params)[0]
+        params['species'] = 'mboson'
+        energies_b = EDFullSpectrum(params)[0]
+        for (n_up,n_dn) in energies_f.keys():
+            if (n_up)%2 == 1 and (n_dn)%2 == 1:
+                print(np.allclose(energies_f[(n_up,n_dn)],energies_b[(n_up,n_dn)]))
+                if not np.allclose(energies_f[(n_up,n_dn)],energies_b[(n_up,n_dn)]):
+                    print(L,(n_up,n_dn))
+                    print(energies_f[(n_up,n_dn)])
+                    print(energies_b[(n_up,n_dn)])
+                    print('.')
+
+        #E_b = EDFullSpectrum(params)[-1]
+        #print(f'L={L} and GS energies are {E_f} vs {E_b}')
+########
+#temp functions
+def test_G(C0,C1,beta,save_fig = None,title = None):
+    '''
+    checks paritties of greens functions
+    '''
+    L = C0.shape[0]
+    Ntau = C0.shape[-1]
+    C0_r = {}
+    C1_r = {}
+    for r1 in range(L):
+        for r2 in range(L):
+            r = (r1 - r2) % L
+            if r == 0:
+                print('r1,r2',r1,r2,C1[r1,r2,0])  
+                if r not in C0_r:
+                    C0_r[r] = []
+                if r not in C1_r:
+                    C1_r[r] = []
+                C0_r[r].append(C0[r1, r2, :])
+                C1_r[r].append(C1[r1, r2, :])
+    if save_fig is not None:
+        for r in sorted(C0_r):
+            for c_tau in C0_r[r]:
+                plt.plot((beta*1./Ntau)*np.arange(Ntau), c_tau,alpha=0.5,label=f'$r={r}$')
+            for c_tau in C1_r[r]:
+                plt.plot((beta*1./Ntau)*np.arange(Ntau), c_tau,alpha=0.5,label=f'$r={r}$',linestyle='--')
+        plt.xlabel("$\\tau$")
+        #plt.title("$B(r=r_1-r_2;\\tau) = B(r_1,r_2;\\tau)$")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(save_fig,dpi = 500)
+    return C0_r,C1_r
+#######################################
+def generate_benchmark_data_new(params,mode):
+    '''
+    Calculate dynamical correlations for *mode* to be used for SSE benchmarking
+    -----------------------------------------------------------
+    params:     are the hamiltonian params to be fed into EDfullSpectrum
+    mode:       Green_p/Green/Spin/Eta
+    '''
+    save_dir = '/mnt/users/kotssvasiliou/ED/benchmarks2/1d/dat_Dumitru'
+    if params['species'] != 'boson':raise ValueError
+    energies,eigenstates,bases,bases_inv,lowestEnergy = EDFullSpectrum(params)
+    params['energies'] = energies
+    params['eigenstates'] = eigenstates
+    params['bases'] = bases
+    params['bases_inv'] = bases_inv
+    params['lowestEnergy'] = lowestEnergy
+    params['JWstring'] = True
+    thermo = thermodynamics(params)
+    #####################
+    # E,N ns beta
+    Beta_max = 10
+    Betas = np.linspace(start=1,stop=Beta_max,num=10,endpoint=True)
+    Es = []
+    Ns = []
+    print('GS:',lowestEnergy)
+    for beta in Betas:
+        Es.append(thermo.H_moments(beta=beta)[1])
+        Ns.append(thermo.N_moments(beta=beta)[0])
+    print('Es',Es)
+    print('Ns',Ns)
+    #####################
+    #parity resolved green's function at tau = 0
+    thermo = thermodynamics(params)
+    n_tau = 11
+    taus = np.linspace(0,Beta_max, num=n_tau)
+    if mode == 'Green_p':
+        logZ_0 = thermo.logZ(beta=Beta_max,parity = 0)
+        logZ_1 = thermo.logZ(beta=Beta_max,parity = 1)
+        G_0_up = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 0,green_spin='up')
+        G_0_dn = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 0,green_spin='dn')
+        G_1_up = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 1,green_spin='up')
+        G_1_dn = thermo.correlator(op='green',beta = Beta_max,n_tau= 10,parity = 1,green_spin='dn')
+        if np.allclose(G_0_dn,G_0_up) and np.allclose(G_1_dn,G_1_up):
+            comp_0 = np.sum(np.abs(G_0_up.imag)) / np.sum(np.abs(G_0_up))
+            comp_1 = np.sum(np.abs(G_1_up.imag)) / np.sum(np.abs(G_1_up))
+            if (comp_0 <1e-8) and (comp_1<1e-8):
+                G_0_up = G_0_up.real
+                G_1_up = G_1_up.real
+            else:
+                raise ValueError
+            G_0 = {}
+            G_1 = {}
+            #group by distance
+            for i in range(params['L']):
+                for j in range(params['L']):
+                    r = (i-j)%params['L']
+                    if r not in G_0.keys():
+                        G_0[r] = []
+                    if r not in G_1.keys():
+                        G_1[r] = []
+                    G_0[r].append(G_0_up[i,j,0])
+                    G_1[r].append(G_1_up[i,j,0])
+            #reduce to translationally invariant....
+            #we dont actually have translational invariance soooooo
+        else:
+            print('GREEN FUNCTIONS NOT SPIN INDPT?')
+            raise ValueError
+        Dat = {'G0':G_0,
+               'G1':G_1,
+               'logZ0':logZ_0,
+               'logZ1':logZ_1}
+    ########################
+    #averaged  correlators for green's function, spin-spin and eta
+    else:
+        if mode == 'Green':
+            Green = thermo.correlator(op='green',beta = Beta_max,n_tau= n_tau,parity = None,green_spin='up')
+            Dat = Green
+        elif mode == 'Spin':
+            Spin = thermo.correlator(op='spinspin',beta = Beta_max,n_tau= n_tau,parity = None)
+            Dat = Spin
+        elif mode == 'Eta':
+            Eta =  thermo.correlator(op='eta',beta = Beta_max,n_tau= n_tau,parity = None)
+            Dat = Eta
+        else:
+            raise ValueError
+        #keep real part
+        comp = np.sum(np.abs(Dat.imag)) / np.sum(np.abs(Dat))
+        if (comp <1e-8):
+            Dat = Dat.real
+        else:
+            raise ValueError
+        #average
+        Dat = observable_collapse(C=Dat,beta = Beta_max,mode = 'average')
+    #save as pickle
+    with open(save_dir+'/'+mode+'data.pkl','wb') as f:
+        pickle.dump(Dat,f)
+    #save params
+    params_save = params['H_params'].copy()
+    params_save['beta'] = Beta_max
+    params_save['taus'] = taus
+    with open(save_dir+'/params.pkl','wb') as f:
+        pickle.dump(params_save,f)
+    return  
+
+#######################################
+if __name__ == "__main__":
+    mode = str(sys.argv[1])
+    L = 6
+    t = 1;U = 4;V = 1.5;mu = 1
+    params = {'L':L,'verbose':1,'species':'boson','H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    generate_benchmark_data_new(params=params,mode = mode)
+    #generate_benchmark_data(params=params,out = 'results_new.h5')
+    quit()
+    #quit()
+    #generate_benchmark_data()
+    L = 6
+    t = 1;U = 5*1;V = 1.1*1;mu = -0.61
+    params = {'L':L,'verbose':0,'species':'boson','H_params':{'t':t,'mu':mu,'U':U,'V':V},'diag_params':{'mode':'full'}}
+    #compare_spectra(params)
+    energies,eigenstates,bases,bases_inv,lowestEnergy = EDFullSpectrum(params)
+    params['energies'] = energies
+    params['eigenstates'] = eigenstates
+    params['bases'] = bases
+    params['bases_inv'] = bases_inv
+    params['lowestEnergy'] = lowestEnergy
+    params['JWstring'] = True
+    thermo = thermodynamics(params)
+    beta = 3
+    #C = thermo.correlator(op='green0',beta = beta,n_tau= 1,parity = None)
+    #C2 = thermo.correlator(op='green',beta = beta,n_tau= 10,parity = None,green_spin='up')
+    #print(C.real)
+    #print(C2[:,:,0].real)
+    #quit()
+    #Corr = thermo.correlator(op='spinspin',beta = beta,n_tau= 50,parity = None,green_spin='up')
+    Corr0 = thermo.correlator(op='eta',beta = beta,n_tau= 50,parity = None,green_spin='up')
+    Corr1 = thermo.correlator(op='spinspin',beta = beta,n_tau= 50,parity = None,green_spin='up')
+    #Corr0 = Corr0.real
+    #Corr1 =Corr1.real
+    #comp = np.sum(np.abs(Corr.imag)) / np.sum(np.abs(Corr))
+    #print(f'how complex is the operator? {comp}%')
+    #if comp<1e-8:
+    #    Corr = Corr.real
+        #Corr = np.abs(Corr)
+    #observable_collapse(C = Corr.real,beta = beta,mode = 'check',save_fig='/mnt/users/kotssvasiliou/ED/core_scripts/figs/',title='green.svg')
+    #check_TI(C=Corr,savefig=True)
+    #quit()
+    #print()
+    C0,C1 = test_G(Corr0,Corr1,beta = 5,save_fig='figs/green_parity.png')
+    #print(C0[0][0][-1:])
+    #print(C0[0][1][-1:])
+    #print(C0[0][2][-1:])
+    #print(C0[0][3][-1:])
+    #print(C1[0].shape)
 

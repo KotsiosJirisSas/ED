@@ -3,3 +3,5 @@ run*
 utils/__pycache__/
 *.out
 utils/configs/G_dict.pkl
+*.h5
+*.pkl
