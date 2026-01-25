@@ -1,4 +1,6 @@
 '''
+NOTE This is an edit of the ED_chains_final_final.py script, with the addition of interaction anisotropy
+
 Script to perform ED and calculate correlators on a system made up for 1D chains.
 It has three main components:
     1)The chain_configs class instance whose main property is that for a given geometry it will have an attribute
@@ -559,6 +561,123 @@ class chains():
             occupancy[i] = self.countBits(masks[i] & state)
             occupancy_tot += occupancy[i]
         return occupancy,occupancy_tot
+    #NOTE NEW!
+    def configuration_Hamiltonian_anis(self):
+        '''
+        Returns the *full* Hamiltonian of the configuration
+        Steps:
+        1)Creates tensor product for hopping Hamiltonians sparsely
+        2)Adds interactions and chemical potential (all are diagonal terms).
+            Now the interactions are anisotropic
+        '''
+        U = self.H_params['U']
+        V = self.H_params['V']
+        mu = self.H_params['mu']
+        num_chains = len(self.chain_hamiltonians)
+        total_dim = np.prod([h.shape[0] for h in self.chain_hamiltonians])
+        H = csr_matrix((total_dim, total_dim), dtype=np.float64)
+        # Loop through each local Hamiltonian and embed it in the tensor product space
+        for i, h_local in enumerate(self.chain_hamiltonians):
+            h_local_sparse = csr_matrix(h_local)
+            # Identity operators for spaces before and after the current subspace
+            identity_before = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i)]), format="csr") if i > 0 else 1
+            identity_after = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i + 1, num_chains)]), format="csr") if i < num_chains - 1 else 1
+            # Embed the local Hamiltonian in the full tensor product space
+            term = kron(kron(identity_before, h_local_sparse), identity_after, format="csr")
+            H += term
+        ######################################
+        ##### interactions#######
+        ##########################
+        basis_dec = [int(el,2) for el in self.basis]
+        #NOTE below only valid for triangle and 2x2
+        mu_eff = mu + 3.*U + 9.*V #or is it 18V???
+        #matrix construction
+        J_orb = np.ones((self.Nflav, self.Nflav))
+        # triangular lattice adjacency (unique pairs)
+        A = np.array([
+            [0, 1, 1, 1],
+            [1, 0, 1, 1],
+            [1, 1, 0, 1],
+            [1, 1, 1, 0]
+        ], dtype=float)
+        # build W = (U/2) * I ⊗ J + (V/2) * A ⊗ J
+        W = (U/2) * np.kron(np.eye(self.L**2), J_orb) + (V/2) * np.kron(A, J_orb)
+        Constant_shift = 18*U + 54*V
+        ####
+        for m in range(total_dim):
+            s = basis_dec[m]
+            occupations = []
+            for site in range(1,self.L**2+1):
+                occ_site = self.countBits(self.sites[site] & s)
+                occupations.append(occ_site)
+                H[m,m] += -mu_eff*occ_site  #half filling is at \mu = (2,3)*U+(8,18)*V for rect & triangle respectively
+            H[m,m] += self.nn_repulsion_anis(self.basis[m],V_mat = W) + Constant_shift
+        ###################
+        diff = H - H.getH()
+        max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
+        if max_diff != 0:
+            print('Hamiltonian is not hermitian!!!!',max_diff)
+        return H
+    def configuration_Hamiltonian_anis_alternative(self):
+        '''
+        Returns the *full* Hamiltonian of the configuration
+        Steps:
+        1)Creates tensor product for hopping Hamiltonians sparsely
+        2)Adds interactions and chemical potential (all are diagonal terms).
+        
+        NOTE This now works for locally anisotropic interactions....
+        '''
+        raise NotImplementedError("Under construction....")
+        U = self.H_params['U']
+        V = self.H_params['V']
+        mu = self.H_params['mu']
+        num_chains = len(self.chain_hamiltonians)
+        total_dim = np.prod([h.shape[0] for h in self.chain_hamiltonians])
+        H = csr_matrix((total_dim, total_dim), dtype=np.float64)
+        # Loop through each local Hamiltonian and embed it in the tensor product space
+        for i, h_local in enumerate(self.chain_hamiltonians):
+            h_local_sparse = csr_matrix(h_local)
+            # Identity operators for spaces before and after the current subspace
+            identity_before = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i)]), format="csr") if i > 0 else 1
+            identity_after = identity(np.prod([self.chain_hamiltonians[j].shape[0] for j in range(i + 1, num_chains)]), format="csr") if i < num_chains - 1 else 1
+            # Embed the local Hamiltonian in the full tensor product space
+            term = kron(kron(identity_before, h_local_sparse), identity_after, format="csr")
+            H += term
+        ######################################
+        ##### interactions#######
+        ##########################
+        basis_dec = [int(el,2) for el in self.basis]
+        if (self.geometry == 'square'):
+            mu_eff = mu + U*(1.)*self.L**2
+        mu_eff = mu + 3.*U + 9.*V #or is it 18V???
+        #matrix construction
+        J_orb = np.ones((self.Nflav, self.Nflav))
+        # triangular lattice adjacency (unique pairs)
+        A = np.array([
+            [0, 1, 1, 1],
+            [1, 0, 1, 1],
+            [1, 1, 0, 1],
+            [1, 1, 1, 0]
+        ], dtype=float)
+        # build W = (U/2) * I ⊗ J + (V/2) * A ⊗ J
+        W = (U/2) * np.kron(np.eye(self.L**2), J_orb) + (V/2) * np.kron(A, J_orb)
+        Constant_shift = 18*U + 54*V
+        ####
+        for m in range(total_dim):
+            s = basis_dec[m]
+            occupations = []
+            for site in range(1,self.L**2+1):
+                occ_site = self.countBits(self.sites[site] & s)
+                occupations.append(occ_site)
+                H[m,m] += -mu_eff*occ_site  #half filling is at \mu = (2,3)*U+(8,18)*V for rect & triangle respectively
+            H[m,m] += self.nn_repulsion_anis(self.basis[m],V_mat = W) + Constant_shift
+        ###################
+        diff = H - H.getH()
+        max_diff = np.abs(diff.data).max() if diff.nnz > 0 else 0
+        if max_diff != 0:
+            print('Hamiltonian is not hermitian!!!!',max_diff)
+        return H
+    
     def configuration_Hamiltonian(self):
         '''
         Returns the *full* Hamiltonian of the configuration
@@ -614,7 +733,17 @@ class chains():
                                                             'vs':               An MxM array of dtype=complex containing the eigenstates. Its the main memory bottleneck by far
         '''
         #lanczos or full?
-        H = self.configuration_Hamiltonian()
+        try:
+            anis = self.H_params['anis']
+            if anis == 1:
+                H = self.configuration_Hamiltonian()
+                #print(f'Isotropic ham!!! a={anis}')
+            else:
+                H = self.configuration_Hamiltonian_anis_alternative()
+                #print(f'Anisotropic ham!!! a={anis}')
+        except:
+            H = self.configuration_Hamiltonian()
+            print(f'Isotropic ham!!! (Key not found))')
 
         if self.diag_params['mode'] == 'full':
             H_dense = H.toarray()
@@ -696,7 +825,51 @@ class chains():
         x = x + (x >> 8)
         x = x + (x >> 16)
         return x & 0x0000003F 
-    
+    def nn_repulsion_anis(self,state,V_mat):
+        '''
+        Calculates the anisotropic n.n. repulsion
+        Input:
+            state:  A basis state represented by a binary string of length 2*3*L**2
+            V_mat:  A (3L^2)x(3L^2) matrix denoting the local + n.n. valley resolved interaction  
+        Output:
+            
+        ------------------------------
+        TODO all of it
+        '''
+        if (self.geometry == 'square') or (self.L != 2):
+            raise NotImplementedError("Anisotropic n.n. interactions are only implemented for 2x2 triangular case")
+        pairs = [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
+        ############################################
+        n_tot = len(state)
+        n_chains = n_tot // (2*self.L) #number of chains
+        out = []
+        for m in range(n_chains):
+            start = m * 2 * self.L
+            spins_up = int(state[start:start+self.L], 2)
+            spins_down  = int(state[start+self.L:start+2*self.L], 2)
+            #where on the chain there's single or double occupancy
+            ones = spins_up ^ spins_down
+            twos = spins_up & spins_down
+            # Build digits from MSB→LSB
+            row = []
+            for i in range(self.L-1, -1, -1):
+                if (twos >> i) & 1:
+                    row.append('2')
+                elif (ones >> i) & 1:
+                    row.append('1')
+                else:
+                    row.append('0')
+            out.append(''.join(row))
+        occ_state = ''.join(out)
+        locations = [1,3,2,4,1,2,3,4,1,4,2,3]
+        occ_matrix = np.zeros((self.L**2,3),dtype=int)
+        for loc in range(12):
+            valley = loc // self.L**2 #what valley this data point belongs to
+            occ_matrix[locations[loc]-1,valley] = int(occ_state[loc])
+        occ_vec = occ_matrix.reshape(-1)     # shape (12,)
+        return occ_vec @ V_mat @ occ_vec
+        #raise NotImplementedError("Not yet coded")
+
     def nn_repulsion(self,occupations):
         '''
         Calculates the n.n. repulsion
@@ -1335,6 +1508,56 @@ class thermodynamics():
         self.cdagger_map =  h5py.File(filename, 'r')
         return 
 
+    
+    ###################################
+    #       Charge gap extraction     # 
+    ###################################
+    def charge_gap(self):
+        '''
+        Extracts the charge gap:
+        Delta_c = E_0(N+1) + E_0 (N-1) -2E_0(N)
+        w/ N the GS sector. Since GS energy is shifted to zero, this is simply
+        Delta_c = E_0(N+1) + E_0 (N-1)
+
+        First I identify N, then i loop through all sectors w/ N+1 and N-1 electrons and get their lowest energy
+
+        NOTE: Add a threshold for degenerate sectors....
+        '''
+        if not hasattr(self,'GS_sec'):
+            self.shift_spectrum()
+        Ns_GS = []
+        for sec in self.GS_secs:
+            Ns_GS.append(sum(sum(t) for t in sec))
+        if len(set(Ns_GS)) != 1:
+            print("Ground states have degeneracies with different electron numbers... no gap.")
+            return 0.
+        N_Gs = list(set(Ns_GS))[0]
+        print('Ground state number sector:',N_Gs)
+        ########################################
+        E_Np1_GS = 1e10
+        Np1_GS_secs = []
+        E_Nm1_GS = 1e10
+        Nm1_GS_secs = []
+        for symm_sector,symm_sector_data in self.data.items():
+            N = sum(sum(t) for t in symm_sector)
+            if (N == N_Gs +1):
+                sector_GS = np.min(symm_sector_data['es'])
+                if sector_GS < E_Np1_GS:
+                    E_Np1_GS = sector_GS
+                    Np1_GS_secs = [symm_sector] #reset list with new minimum sector
+                elif sector_GS == E_Np1_GS:
+                    Np1_GS_secs.append(symm_sector) #append list if we have degeneracy
+            elif (N == N_Gs -1):
+                sector_GS = np.min(symm_sector_data['es'])
+                if sector_GS < (E_Nm1_GS):
+                    E_Nm1_GS = sector_GS
+                    Nm1_GS_secs = [symm_sector] #reset list with new minimum sector
+                elif sector_GS == E_Nm1_GS:
+                    Nm1_GS_secs.append(symm_sector) #append list if we have degeneracy
+        print(f'N+1 GR sector:{Np1_GS_secs} and energy:{E_Np1_GS}')
+        print(f'N-1 GR sector:{Nm1_GS_secs} and energy:{E_Nm1_GS}')
+        print('charge gap:',E_Np1_GS+E_Nm1_GS-self.GS_energy)
+        return E_Np1_GS + E_Nm1_GS - self.GS_energy
     ###################################
     #       HELPER FUNCTIONS          # 
     ###################################
@@ -1359,6 +1582,7 @@ class thermodynamics():
         Es_flat = np.concatenate([symm_sector_data['es'] for symm_sector_data in self.data.values()])
         if self.verbose>0:print('AFTER SHIFTING, EXTREMAL VALUES OF ENERGY ARE',np.min(Es_flat),np.max(Es_flat))
         self.GS_energy = GS_energy
+        self.GS_secs = GS_secs
         return
     @staticmethod
     def binp(num, length=4):

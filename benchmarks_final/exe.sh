@@ -1,0 +1,13 @@
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  5 1 5.0
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  5 1 7.5
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  5 1 10.0
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 0.0
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 2.5
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 5.0
+addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 7.5
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  5 1 2.5
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  5 1 -10.0
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 10
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 20
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 30
+#addqueue -m 5 -c "ED" /mnt/users/kotssvasiliou/ALF_mod/pyalf/bin/python /mnt/users/kotssvasiliou/ED/benchmarks_final/runs.py  20 1 40

@@ -1,0 +1,1791 @@
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =4.0522968544577775
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:19.98
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:19.98
+vector:[-2 -1] and relative strength:0.47 and absolute strength:9.38
+vector:[2 1] and relative strength:0.47 and absolute strength:9.38
+vector:[ 0 -2] and relative strength:0.23 and absolute strength:4.65
+vector:[0 2] and relative strength:0.23 and absolute strength:4.65
+vector:[1 1] and relative strength:-0.09 and absolute strength:-1.71
+vector:[1 0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1  0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1 -1] and relative strength:-0.09 and absolute strength:-1.71
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:4.05 and SU(6) breaking:0.53% and absolute strength:80.98
+vector:[1 1] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[0 1] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[ 0 -1] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[-1 -1] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[-1  0] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[1 0] and relative strength:0.80 and SU(6) breaking:14% and absolute strength:16.05
+vector:[-2 -1] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[ 1 -1] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[2 1] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[1 2] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[-1  1] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[-1 -2] and relative strength:0.11 and SU(6) breaking:15% and absolute strength:2.22
+vector:[2 0] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+vector:[2 2] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+vector:[0 2] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+vector:[ 0 -2] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+vector:[-2  0] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+vector:[-2 -2] and relative strength:0.07 and SU(6) breaking:40% and absolute strength:1.31
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =5.2007453592220845
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:19.98
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:19.98
+vector:[-2 -1] and relative strength:0.47 and absolute strength:9.38
+vector:[2 1] and relative strength:0.47 and absolute strength:9.38
+vector:[ 0 -2] and relative strength:0.23 and absolute strength:4.65
+vector:[0 2] and relative strength:0.23 and absolute strength:4.65
+vector:[1 1] and relative strength:-0.09 and absolute strength:-1.71
+vector:[1 0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1  0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1 -1] and relative strength:-0.09 and absolute strength:-1.71
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:5.20 and SU(6) breaking:0.46% and absolute strength:103.92
+vector:[1 1] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[0 1] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[-1  0] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[-1 -1] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[1 0] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[ 0 -1] and relative strength:1.48 and SU(6) breaking:9.5% and absolute strength:29.64
+vector:[-2 -1] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[ 1 -1] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[2 1] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[1 2] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[-1  1] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[-1 -2] and relative strength:0.40 and SU(6) breaking:8.9% and absolute strength:8.00
+vector:[2 0] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+vector:[2 2] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+vector:[0 2] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+vector:[ 0 -2] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+vector:[-2  0] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+vector:[-2 -2] and relative strength:0.27 and SU(6) breaking:14% and absolute strength:5.36
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =5.9311638808663005
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:19.98
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:19.98
+vector:[-2 -1] and relative strength:0.47 and absolute strength:9.38
+vector:[2 1] and relative strength:0.47 and absolute strength:9.38
+vector:[ 0 -2] and relative strength:0.23 and absolute strength:4.65
+vector:[0 2] and relative strength:0.23 and absolute strength:4.65
+vector:[1 1] and relative strength:-0.09 and absolute strength:-1.71
+vector:[1 0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1  0] and relative strength:-0.09 and absolute strength:-1.71
+vector:[-1 -1] and relative strength:-0.09 and absolute strength:-1.71
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:5.93 and SU(6) breaking:0.41% and absolute strength:118.52
+vector:[1 1] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[ 0 -1] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[0 1] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[-1 -1] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[-1  0] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[1 0] and relative strength:2.09 and SU(6) breaking:7.3% and absolute strength:41.73
+vector:[-2 -1] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[ 1 -1] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[2 1] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[1 2] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[-1  1] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[-1 -2] and relative strength:0.83 and SU(6) breaking:5.7% and absolute strength:16.63
+vector:[2 0] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+vector:[2 2] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+vector:[0 2] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+vector:[ 0 -2] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+vector:[-2  0] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+vector:[-2 -2] and relative strength:0.64 and SU(6) breaking:7.2% and absolute strength:12.77
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =6.231890127325849
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:11.39
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:11.39
+vector:[-2 -1] and relative strength:0.25 and absolute strength:2.90
+vector:[2 1] and relative strength:0.25 and absolute strength:2.90
+vector:[ 0 -2] and relative strength:0.20 and absolute strength:2.30
+vector:[0 2] and relative strength:0.20 and absolute strength:2.30
+vector:[1 1] and relative strength:-0.08 and absolute strength:-0.94
+vector:[1 0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1  0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1 -1] and relative strength:-0.08 and absolute strength:-0.94
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:6.23 and SU(6) breaking:1% and absolute strength:70.97
+vector:[1 1] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[0 1] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[ 0 -1] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[-1 -1] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[-1  0] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[1 0] and relative strength:0.73 and SU(6) breaking:22% and absolute strength:8.28
+vector:[-2 -1] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+vector:[ 1 -1] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+vector:[2 1] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+vector:[1 2] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+vector:[-1  1] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+vector:[-1 -2] and relative strength:0.06 and SU(6) breaking:25% and absolute strength:0.68
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =8.173090695400942
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:11.39
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:11.39
+vector:[-2 -1] and relative strength:0.25 and absolute strength:2.90
+vector:[2 1] and relative strength:0.25 and absolute strength:2.90
+vector:[ 0 -2] and relative strength:0.20 and absolute strength:2.30
+vector:[0 2] and relative strength:0.20 and absolute strength:2.30
+vector:[1 1] and relative strength:-0.08 and absolute strength:-0.94
+vector:[1 0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1  0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1 -1] and relative strength:-0.08 and absolute strength:-0.94
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:8.17 and SU(6) breaking:0.9% and absolute strength:93.07
+vector:[1 0] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[-1  0] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[ 0 -1] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[1 1] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[-1 -1] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[0 1] and relative strength:1.61 and SU(6) breaking:14% and absolute strength:18.36
+vector:[-2 -1] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[-1 -2] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[2 1] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[ 1 -1] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[-1  1] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[1 2] and relative strength:0.32 and SU(6) breaking:14% and absolute strength:3.69
+vector:[0 2] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+vector:[2 2] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+vector:[ 0 -2] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+vector:[2 0] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+vector:[-2  0] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+vector:[-2 -2] and relative strength:0.20 and SU(6) breaking:20% and absolute strength:2.28
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =9.438310690807702
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:11.39
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:11.39
+vector:[-2 -1] and relative strength:0.25 and absolute strength:2.90
+vector:[2 1] and relative strength:0.25 and absolute strength:2.90
+vector:[ 0 -2] and relative strength:0.20 and absolute strength:2.30
+vector:[0 2] and relative strength:0.20 and absolute strength:2.30
+vector:[1 1] and relative strength:-0.08 and absolute strength:-0.94
+vector:[1 0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1  0] and relative strength:-0.08 and absolute strength:-0.94
+vector:[-1 -1] and relative strength:-0.08 and absolute strength:-0.94
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:9.44 and SU(6) breaking:0.8% and absolute strength:107.48
+vector:[1 1] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[0 1] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[ 0 -1] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[-1 -1] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[-1  0] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[1 0] and relative strength:2.55 and SU(6) breaking:10% and absolute strength:29.05
+vector:[-2 -1] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[-1 -2] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[2 1] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[ 1 -1] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[1 2] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[-1  1] and relative strength:0.89 and SU(6) breaking:8% and absolute strength:10.12
+vector:[ 0 -2] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+vector:[2 0] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+vector:[2 2] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+vector:[0 2] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+vector:[-2  0] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+vector:[-2 -2] and relative strength:0.65 and SU(6) breaking:9.1% and absolute strength:7.43
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =11.172173909656811
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:5.87
+vector:[0 1] and relative strength:1.00 and absolute strength:5.87
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:0.96
+vector:[0 2] and relative strength:0.16 and absolute strength:0.96
+vector:[2 1] and relative strength:0.11 and absolute strength:0.66
+vector:[-2 -1] and relative strength:0.11 and absolute strength:0.66
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:11.17 and SU(6) breaking:1.3% and absolute strength:65.59
+vector:[1 1] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+vector:[-1 -1] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+vector:[ 0 -1] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+vector:[1 0] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+vector:[-1  0] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+vector:[0 1] and relative strength:0.71 and SU(6) breaking:27% and absolute strength:4.16
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =14.872064832058234
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:5.87
+vector:[0 1] and relative strength:1.00 and absolute strength:5.87
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:0.96
+vector:[0 2] and relative strength:0.16 and absolute strength:0.96
+vector:[2 1] and relative strength:0.11 and absolute strength:0.66
+vector:[-2 -1] and relative strength:0.11 and absolute strength:0.66
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:14.87 and SU(6) breaking:1.1% and absolute strength:87.32
+vector:[1 1] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[0 1] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[ 0 -1] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[-1 -1] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[-1  0] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[1 0] and relative strength:1.95 and SU(6) breaking:17% and absolute strength:11.46
+vector:[-1  1] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[-2 -1] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[2 1] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[ 1 -1] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[-1 -2] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[1 2] and relative strength:0.29 and SU(6) breaking:16% and absolute strength:1.68
+vector:[2 0] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+vector:[2 2] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+vector:[0 2] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+vector:[ 0 -2] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+vector:[-2  0] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+vector:[-2 -2] and relative strength:0.16 and SU(6) breaking:21% and absolute strength:0.94
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =17.31979690554352
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:5.87
+vector:[0 1] and relative strength:1.00 and absolute strength:5.87
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:0.96
+vector:[0 2] and relative strength:0.16 and absolute strength:0.96
+vector:[2 1] and relative strength:0.11 and absolute strength:0.66
+vector:[-2 -1] and relative strength:0.11 and absolute strength:0.66
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:17.32 and SU(6) breaking:0.95% and absolute strength:101.69
+vector:[1 0] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[-1  0] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[ 0 -1] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[1 1] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[-1 -1] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[0 1] and relative strength:3.55 and SU(6) breaking:11% and absolute strength:20.82
+vector:[-2 -1] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[ 1 -1] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[2 1] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[1 2] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[-1  1] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[-1 -2] and relative strength:1.08 and SU(6) breaking:8.6% and absolute strength:6.35
+vector:[0 2] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+vector:[2 2] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+vector:[-2 -2] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+vector:[ 0 -2] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+vector:[2 0] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+vector:[-2  0] and relative strength:0.75 and SU(6) breaking:9.1% and absolute strength:4.41
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =14.263479184874384
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:4.15
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:4.15
+vector:[0 2] and relative strength:0.13 and absolute strength:0.54
+vector:[ 0 -2] and relative strength:0.13 and absolute strength:0.54
+vector:[-2 -1] and relative strength:0.06 and absolute strength:0.24
+vector:[2 1] and relative strength:0.06 and absolute strength:0.24
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:14.26 and SU(6) breaking:1.5% and absolute strength:59.22
+vector:[1 1] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+vector:[0 1] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+vector:[ 0 -1] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+vector:[-1 -1] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+vector:[-1  0] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+vector:[1 0] and relative strength:0.51 and SU(6) breaking:31% and absolute strength:2.13
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =19.32133430327935
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:4.15
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:4.15
+vector:[0 2] and relative strength:0.13 and absolute strength:0.54
+vector:[ 0 -2] and relative strength:0.13 and absolute strength:0.54
+vector:[-2 -1] and relative strength:0.06 and absolute strength:0.24
+vector:[2 1] and relative strength:0.06 and absolute strength:0.24
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:19.32 and SU(6) breaking:1.3% and absolute strength:80.23
+vector:[1 1] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[0 1] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[ 0 -1] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[-1 -1] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[1 0] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[-1  0] and relative strength:1.76 and SU(6) breaking:18% and absolute strength:7.30
+vector:[-2 -1] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[ 1 -1] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[2 1] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[1 2] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[-1  1] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[-1 -2] and relative strength:0.19 and SU(6) breaking:17% and absolute strength:0.79
+vector:[2 0] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+vector:[2 2] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+vector:[-2  0] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+vector:[0 2] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+vector:[ 0 -2] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+vector:[-2 -2] and relative strength:0.10 and SU(6) breaking:22% and absolute strength:0.40
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =2.407489092885892
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:18.51
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:18.51
+vector:[-2 -1] and relative strength:0.59 and absolute strength:10.91
+vector:[2 1] and relative strength:0.59 and absolute strength:10.91
+vector:[ 0 -2] and relative strength:0.22 and absolute strength:3.98
+vector:[0 2] and relative strength:0.22 and absolute strength:3.98
+vector:[1 1] and relative strength:-0.06 and absolute strength:-1.17
+vector:[1 0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1  0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1 -1] and relative strength:-0.06 and absolute strength:-1.17
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:2.41 and SU(6) breaking:59% and absolute strength:44.55
+vector:[1 1] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[0 1] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[ 0 -1] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[-1 -1] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[-1  0] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[1 0] and relative strength:1.03 and SU(6) breaking:96% and absolute strength:19.01
+vector:[-2 -1] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[ 1 -1] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[2 1] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[1 2] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[-1  1] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[-1 -2] and relative strength:0.20 and SU(6) breaking:1.4e+02% and absolute strength:3.76
+vector:[-2  0] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+vector:[2 0] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+vector:[2 2] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+vector:[0 2] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+vector:[ 0 -2] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+vector:[-2 -2] and relative strength:0.11 and SU(6) breaking:1.2e+02% and absolute strength:2.06
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =3.408181053847603
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:18.51
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:18.51
+vector:[-2 -1] and relative strength:0.59 and absolute strength:10.91
+vector:[2 1] and relative strength:0.59 and absolute strength:10.91
+vector:[ 0 -2] and relative strength:0.22 and absolute strength:3.98
+vector:[0 2] and relative strength:0.22 and absolute strength:3.98
+vector:[1 1] and relative strength:-0.06 and absolute strength:-1.17
+vector:[1 0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1  0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1 -1] and relative strength:-0.06 and absolute strength:-1.17
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:3.41 and SU(6) breaking:47% and absolute strength:63.07
+vector:[1 1] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[0 1] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[ 0 -1] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[-1 -1] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[-1  0] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[1 0] and relative strength:1.70 and SU(6) breaking:73% and absolute strength:31.51
+vector:[1 2] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[-2 -1] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[2 1] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[ 1 -1] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[-1  1] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[-1 -2] and relative strength:0.53 and SU(6) breaking:87% and absolute strength:9.87
+vector:[2 0] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+vector:[2 2] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+vector:[0 2] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+vector:[ 0 -2] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+vector:[-2  0] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+vector:[-2 -2] and relative strength:0.35 and SU(6) breaking:80% and absolute strength:6.48
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =4.1368677733019386
+HOPPING VECTORS AND STRENGTH:
+vector:[0 1] and relative strength:1.00 and absolute strength:18.51
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:18.51
+vector:[-2 -1] and relative strength:0.59 and absolute strength:10.91
+vector:[2 1] and relative strength:0.59 and absolute strength:10.91
+vector:[ 0 -2] and relative strength:0.22 and absolute strength:3.98
+vector:[0 2] and relative strength:0.22 and absolute strength:3.98
+vector:[1 1] and relative strength:-0.06 and absolute strength:-1.17
+vector:[1 0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1  0] and relative strength:-0.06 and absolute strength:-1.17
+vector:[-1 -1] and relative strength:-0.06 and absolute strength:-1.17
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:4.14 and SU(6) breaking:39% and absolute strength:76.56
+vector:[0 1] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[1 1] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[ 0 -1] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[-1 -1] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[-1  0] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[1 0] and relative strength:2.32 and SU(6) breaking:58% and absolute strength:42.94
+vector:[-2 -1] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[ 1 -1] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[2 1] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[1 2] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[-1  1] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[-1 -2] and relative strength:0.99 and SU(6) breaking:58% and absolute strength:18.29
+vector:[2 0] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+vector:[2 2] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+vector:[0 2] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+vector:[ 0 -2] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+vector:[-2  0] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+vector:[-2 -2] and relative strength:0.75 and SU(6) breaking:51% and absolute strength:13.79
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =3.3428851136155067
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:9.68
+vector:[0 1] and relative strength:1.00 and absolute strength:9.68
+vector:[2 1] and relative strength:0.41 and absolute strength:3.95
+vector:[-2 -1] and relative strength:0.41 and absolute strength:3.95
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:1.58
+vector:[0 2] and relative strength:0.16 and absolute strength:1.58
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:3.34 and SU(6) breaking:93% and absolute strength:32.35
+vector:[1 1] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[ 0 -1] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[0 1] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[-1 -1] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[-1  0] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[1 0] and relative strength:1.26 and SU(6) breaking:1.2e+02% and absolute strength:12.18
+vector:[-1 -2] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[-1  1] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[2 1] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[-2 -1] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[1 2] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[ 1 -1] and relative strength:0.20 and SU(6) breaking:2e+02% and absolute strength:1.93
+vector:[2 0] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+vector:[2 2] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+vector:[0 2] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+vector:[ 0 -2] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+vector:[-2  0] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+vector:[-2 -2] and relative strength:0.08 and SU(6) breaking:1.5e+02% and absolute strength:0.78
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =4.938587646037453
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:9.68
+vector:[0 1] and relative strength:1.00 and absolute strength:9.68
+vector:[2 1] and relative strength:0.41 and absolute strength:3.95
+vector:[-2 -1] and relative strength:0.41 and absolute strength:3.95
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:1.58
+vector:[0 2] and relative strength:0.16 and absolute strength:1.58
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:4.94 and SU(6) breaking:74% and absolute strength:47.80
+vector:[1 1] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[0 1] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[-1 -1] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[ 0 -1] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[-1  0] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[1 0] and relative strength:2.23 and SU(6) breaking:95% and absolute strength:21.54
+vector:[-1  1] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[-2 -1] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[ 1 -1] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[2 1] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[-1 -2] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[1 2] and relative strength:0.58 and SU(6) breaking:1.3e+02% and absolute strength:5.60
+vector:[2 0] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+vector:[2 2] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+vector:[0 2] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+vector:[ 0 -2] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+vector:[-2  0] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+vector:[-2 -2] and relative strength:0.33 and SU(6) breaking:1.1e+02% and absolute strength:3.15
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =6.2320357650434905
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:9.68
+vector:[0 1] and relative strength:1.00 and absolute strength:9.68
+vector:[2 1] and relative strength:0.41 and absolute strength:3.95
+vector:[-2 -1] and relative strength:0.41 and absolute strength:3.95
+vector:[ 0 -2] and relative strength:0.16 and absolute strength:1.58
+vector:[0 2] and relative strength:0.16 and absolute strength:1.58
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:6.23 and SU(6) breaking:61% and absolute strength:60.31
+vector:[1 1] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[ 0 -1] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[-1  0] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[-1 -1] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[1 0] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[0 1] and relative strength:3.24 and SU(6) breaking:73% and absolute strength:31.40
+vector:[-2 -1] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[ 1 -1] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[2 1] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[1 2] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[-1  1] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[-1 -2] and relative strength:1.24 and SU(6) breaking:79% and absolute strength:11.97
+vector:[0 2] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+vector:[-2 -2] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+vector:[2 0] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+vector:[2 2] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+vector:[ 0 -2] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+vector:[-2  0] and relative strength:0.86 and SU(6) breaking:66% and absolute strength:8.36
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =6.774830944253361
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:4.16
+vector:[0 1] and relative strength:1.00 and absolute strength:4.16
+vector:[-1  0] and relative strength:0.53 and absolute strength:2.21
+vector:[-1 -1] and relative strength:0.53 and absolute strength:2.21
+vector:[1 0] and relative strength:0.53 and absolute strength:2.21
+vector:[1 1] and relative strength:0.53 and absolute strength:2.21
+vector:[-2 -1] and relative strength:0.25 and absolute strength:1.02
+vector:[2 1] and relative strength:0.25 and absolute strength:1.02
+vector:[ 0 -2] and relative strength:0.12 and absolute strength:0.48
+vector:[0 2] and relative strength:0.12 and absolute strength:0.48
+vector:[-1 -2] and relative strength:0.09 and absolute strength:0.37
+vector:[-1  1] and relative strength:0.09 and absolute strength:0.37
+vector:[1 2] and relative strength:0.09 and absolute strength:0.37
+vector:[ 1 -1] and relative strength:0.09 and absolute strength:0.37
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:6.77 and SU(6) breaking:1e+02% and absolute strength:28.18
+vector:[1 0] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[0 1] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[-1  0] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[-1 -1] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[ 0 -1] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[1 1] and relative strength:2.01 and SU(6) breaking:1.4e+02% and absolute strength:8.37
+vector:[-1  1] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[ 1 -1] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[2 1] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[1 2] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[-2 -1] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[-1 -2] and relative strength:0.17 and SU(6) breaking:2.1e+02% and absolute strength:0.72
+vector:[-2 -2] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+vector:[ 0 -2] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+vector:[2 0] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+vector:[2 2] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+vector:[0 2] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+vector:[-2  0] and relative strength:0.06 and SU(6) breaking:1.6e+02% and absolute strength:0.24
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =10.164055385291794
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:4.16
+vector:[0 1] and relative strength:1.00 and absolute strength:4.16
+vector:[-1  0] and relative strength:0.53 and absolute strength:2.21
+vector:[-1 -1] and relative strength:0.53 and absolute strength:2.21
+vector:[1 0] and relative strength:0.53 and absolute strength:2.21
+vector:[1 1] and relative strength:0.53 and absolute strength:2.21
+vector:[-2 -1] and relative strength:0.25 and absolute strength:1.02
+vector:[2 1] and relative strength:0.25 and absolute strength:1.02
+vector:[ 0 -2] and relative strength:0.12 and absolute strength:0.48
+vector:[0 2] and relative strength:0.12 and absolute strength:0.48
+vector:[-1 -2] and relative strength:0.09 and absolute strength:0.37
+vector:[-1  1] and relative strength:0.09 and absolute strength:0.37
+vector:[1 2] and relative strength:0.09 and absolute strength:0.37
+vector:[ 1 -1] and relative strength:0.09 and absolute strength:0.37
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:10.16 and SU(6) breaking:82% and absolute strength:42.28
+vector:[1 1] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[0 1] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[-1 -1] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[ 0 -1] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[-1  0] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[1 0] and relative strength:3.76 and SU(6) breaking:1.1e+02% and absolute strength:15.65
+vector:[-2 -1] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[ 1 -1] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[2 1] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[1 2] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[-1  1] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[-1 -2] and relative strength:0.68 and SU(6) breaking:1.4e+02% and absolute strength:2.83
+vector:[-2  0] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+vector:[ 0 -2] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+vector:[2 0] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+vector:[2 2] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+vector:[0 2] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+vector:[-2 -2] and relative strength:0.35 and SU(6) breaking:1.2e+02% and absolute strength:1.44
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =13.05061436546097
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:4.16
+vector:[0 1] and relative strength:1.00 and absolute strength:4.16
+vector:[-1  0] and relative strength:0.53 and absolute strength:2.21
+vector:[-1 -1] and relative strength:0.53 and absolute strength:2.21
+vector:[1 0] and relative strength:0.53 and absolute strength:2.21
+vector:[1 1] and relative strength:0.53 and absolute strength:2.21
+vector:[-2 -1] and relative strength:0.25 and absolute strength:1.02
+vector:[2 1] and relative strength:0.25 and absolute strength:1.02
+vector:[ 0 -2] and relative strength:0.12 and absolute strength:0.48
+vector:[0 2] and relative strength:0.12 and absolute strength:0.48
+vector:[-1 -2] and relative strength:0.09 and absolute strength:0.37
+vector:[-1  1] and relative strength:0.09 and absolute strength:0.37
+vector:[1 2] and relative strength:0.09 and absolute strength:0.37
+vector:[ 1 -1] and relative strength:0.09 and absolute strength:0.37
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:13.05 and SU(6) breaking:67% and absolute strength:54.29
+vector:[1 1] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[0 1] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[ 0 -1] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[-1 -1] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[-1  0] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[1 0] and relative strength:5.84 and SU(6) breaking:82% and absolute strength:24.29
+vector:[-2 -1] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[ 1 -1] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[2 1] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[1 2] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[-1  1] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[-1 -2] and relative strength:1.83 and SU(6) breaking:81% and absolute strength:7.61
+vector:[2 0] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+vector:[2 2] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+vector:[0 2] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+vector:[ 0 -2] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+vector:[-2  0] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+vector:[-2 -2] and relative strength:1.22 and SU(6) breaking:69% and absolute strength:5.08
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =9.590595404073795
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:2.50
+vector:[0 1] and relative strength:1.00 and absolute strength:2.50
+vector:[-1  0] and relative strength:0.88 and absolute strength:2.19
+vector:[-1 -1] and relative strength:0.88 and absolute strength:2.19
+vector:[1 0] and relative strength:0.88 and absolute strength:2.19
+vector:[1 1] and relative strength:0.88 and absolute strength:2.19
+vector:[-2 -1] and relative strength:0.16 and absolute strength:0.41
+vector:[2 1] and relative strength:0.16 and absolute strength:0.41
+vector:[-1 -2] and relative strength:0.10 and absolute strength:0.25
+vector:[ 1 -1] and relative strength:0.10 and absolute strength:0.25
+vector:[1 2] and relative strength:0.10 and absolute strength:0.25
+vector:[-1  1] and relative strength:0.10 and absolute strength:0.25
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.21
+vector:[0 2] and relative strength:0.08 and absolute strength:0.21
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:9.59 and SU(6) breaking:1.2e+02% and absolute strength:24.00
+vector:[1 1] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[0 1] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[ 0 -1] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[-1 -1] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[-1  0] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[1 0] and relative strength:2.37 and SU(6) breaking:1.6e+02% and absolute strength:5.92
+vector:[-1 -2] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+vector:[-2 -1] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+vector:[2 1] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+vector:[-1  1] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+vector:[1 2] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+vector:[ 1 -1] and relative strength:0.14 and SU(6) breaking:2.3e+02% and absolute strength:0.34
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =14.504562575434333
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:2.50
+vector:[0 1] and relative strength:1.00 and absolute strength:2.50
+vector:[-1  0] and relative strength:0.88 and absolute strength:2.19
+vector:[-1 -1] and relative strength:0.88 and absolute strength:2.19
+vector:[1 0] and relative strength:0.88 and absolute strength:2.19
+vector:[1 1] and relative strength:0.88 and absolute strength:2.19
+vector:[-2 -1] and relative strength:0.16 and absolute strength:0.41
+vector:[2 1] and relative strength:0.16 and absolute strength:0.41
+vector:[-1 -2] and relative strength:0.10 and absolute strength:0.25
+vector:[ 1 -1] and relative strength:0.10 and absolute strength:0.25
+vector:[1 2] and relative strength:0.10 and absolute strength:0.25
+vector:[-1  1] and relative strength:0.10 and absolute strength:0.25
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.21
+vector:[0 2] and relative strength:0.08 and absolute strength:0.21
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:14.50 and SU(6) breaking:95% and absolute strength:36.29
+vector:[1 1] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[0 1] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[-1  0] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[-1 -1] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[ 0 -1] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[1 0] and relative strength:4.61 and SU(6) breaking:1.2e+02% and absolute strength:11.55
+vector:[-1  1] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[-2 -1] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[1 2] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[2 1] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[-1 -2] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[ 1 -1] and relative strength:0.65 and SU(6) breaking:1.6e+02% and absolute strength:1.62
+vector:[0 2] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+vector:[ 0 -2] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+vector:[-2  0] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+vector:[-2 -2] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+vector:[2 0] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+vector:[2 2] and relative strength:0.28 and SU(6) breaking:1.3e+02% and absolute strength:0.70
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =18.980311079212505
+HOPPING VECTORS AND STRENGTH:
+vector:[ 0 -1] and relative strength:1.00 and absolute strength:2.50
+vector:[0 1] and relative strength:1.00 and absolute strength:2.50
+vector:[-1  0] and relative strength:0.88 and absolute strength:2.19
+vector:[-1 -1] and relative strength:0.88 and absolute strength:2.19
+vector:[1 0] and relative strength:0.88 and absolute strength:2.19
+vector:[1 1] and relative strength:0.88 and absolute strength:2.19
+vector:[-2 -1] and relative strength:0.16 and absolute strength:0.41
+vector:[2 1] and relative strength:0.16 and absolute strength:0.41
+vector:[-1 -2] and relative strength:0.10 and absolute strength:0.25
+vector:[ 1 -1] and relative strength:0.10 and absolute strength:0.25
+vector:[1 2] and relative strength:0.10 and absolute strength:0.25
+vector:[-1  1] and relative strength:0.10 and absolute strength:0.25
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.21
+vector:[0 2] and relative strength:0.08 and absolute strength:0.21
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:18.98 and SU(6) breaking:77% and absolute strength:47.49
+vector:[1 1] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[0 1] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[ 0 -1] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[-1 -1] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[-1  0] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[1 0] and relative strength:7.58 and SU(6) breaking:90% and absolute strength:18.97
+vector:[-2 -1] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[ 1 -1] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[2 1] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[1 2] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[-1 -2] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[-1  1] and relative strength:2.07 and SU(6) breaking:90% and absolute strength:5.17
+vector:[-2 -2] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+vector:[2 0] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+vector:[-2  0] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+vector:[2 2] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+vector:[0 2] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+vector:[ 0 -2] and relative strength:1.30 and SU(6) breaking:77% and absolute strength:3.24
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =10.891709779488997
+HOPPING VECTORS AND STRENGTH:
+vector:[1 1] and relative strength:1.00 and absolute strength:1.96
+vector:[1 0] and relative strength:1.00 and absolute strength:1.96
+vector:[-1  0] and relative strength:1.00 and absolute strength:1.96
+vector:[-1 -1] and relative strength:1.00 and absolute strength:1.96
+vector:[0 1] and relative strength:0.51 and absolute strength:0.99
+vector:[ 0 -1] and relative strength:0.51 and absolute strength:0.99
+vector:[-2 -1] and relative strength:0.08 and absolute strength:0.16
+vector:[2 1] and relative strength:0.08 and absolute strength:0.16
+vector:[-1 -2] and relative strength:0.06 and absolute strength:0.12
+vector:[ 1 -1] and relative strength:0.06 and absolute strength:0.12
+vector:[1 2] and relative strength:0.06 and absolute strength:0.12
+vector:[-1  1] and relative strength:0.06 and absolute strength:0.12
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:10.89 and SU(6) breaking:1.3e+02% and absolute strength:21.40
+vector:[0 1] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[1 1] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[ 0 -1] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[-1  0] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[1 0] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[-1 -1] and relative strength:2.22 and SU(6) breaking:1.7e+02% and absolute strength:4.36
+vector:[-2 -1] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+vector:[-1 -2] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+vector:[2 1] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+vector:[ 1 -1] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+vector:[1 2] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+vector:[-1  1] and relative strength:0.08 and SU(6) breaking:2.3e+02% and absolute strength:0.15
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =16.43986245667495
+HOPPING VECTORS AND STRENGTH:
+vector:[1 1] and relative strength:1.00 and absolute strength:1.96
+vector:[1 0] and relative strength:1.00 and absolute strength:1.96
+vector:[-1  0] and relative strength:1.00 and absolute strength:1.96
+vector:[-1 -1] and relative strength:1.00 and absolute strength:1.96
+vector:[0 1] and relative strength:0.51 and absolute strength:0.99
+vector:[ 0 -1] and relative strength:0.51 and absolute strength:0.99
+vector:[-2 -1] and relative strength:0.08 and absolute strength:0.16
+vector:[2 1] and relative strength:0.08 and absolute strength:0.16
+vector:[-1 -2] and relative strength:0.06 and absolute strength:0.12
+vector:[ 1 -1] and relative strength:0.06 and absolute strength:0.12
+vector:[1 2] and relative strength:0.06 and absolute strength:0.12
+vector:[-1  1] and relative strength:0.06 and absolute strength:0.12
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:16.44 and SU(6) breaking:1.1e+02% and absolute strength:32.30
+vector:[1 1] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[0 1] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[ 0 -1] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[-1 -1] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[-1  0] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[1 0] and relative strength:4.47 and SU(6) breaking:1.3e+02% and absolute strength:8.77
+vector:[-2 -1] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[ 1 -1] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[2 1] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[1 2] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[-1  1] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[-1 -2] and relative strength:0.47 and SU(6) breaking:1.7e+02% and absolute strength:0.92
+vector:[2 0] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+vector:[2 2] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+vector:[0 2] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+vector:[ 0 -2] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+vector:[-2  0] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+vector:[-2 -2] and relative strength:0.18 and SU(6) breaking:1.4e+02% and absolute strength:0.36
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =12.024880066314513
+HOPPING VECTORS AND STRENGTH:
+vector:[1 1] and relative strength:1.00 and absolute strength:1.57
+vector:[1 0] and relative strength:1.00 and absolute strength:1.57
+vector:[-1  0] and relative strength:1.00 and absolute strength:1.57
+vector:[-1 -1] and relative strength:1.00 and absolute strength:1.57
+vector:[0 1] and relative strength:0.39 and absolute strength:0.61
+vector:[ 0 -1] and relative strength:0.39 and absolute strength:0.61
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:12.02 and SU(6) breaking:1.3e+02% and absolute strength:18.87
+vector:[1 0] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+vector:[ 0 -1] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+vector:[-1  0] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+vector:[0 1] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+vector:[-1 -1] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+vector:[1 1] and relative strength:2.06 and SU(6) breaking:1.7e+02% and absolute strength:3.23
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =18.221920943836405
+HOPPING VECTORS AND STRENGTH:
+vector:[1 1] and relative strength:1.00 and absolute strength:1.57
+vector:[1 0] and relative strength:1.00 and absolute strength:1.57
+vector:[-1  0] and relative strength:1.00 and absolute strength:1.57
+vector:[-1 -1] and relative strength:1.00 and absolute strength:1.57
+vector:[0 1] and relative strength:0.39 and absolute strength:0.61
+vector:[ 0 -1] and relative strength:0.39 and absolute strength:0.61
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:18.22 and SU(6) breaking:1.1e+02% and absolute strength:28.60
+vector:[0 1] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[ 0 -1] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[1 0] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[-1 -1] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[-1  0] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[1 1] and relative strength:4.28 and SU(6) breaking:1.4e+02% and absolute strength:6.72
+vector:[-1 -2] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[1 2] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[2 1] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[ 1 -1] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[-2 -1] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[-1  1] and relative strength:0.35 and SU(6) breaking:1.9e+02% and absolute strength:0.55
+vector:[-2  0] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+vector:[ 0 -2] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+vector:[2 0] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+vector:[2 2] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+vector:[0 2] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+vector:[-2 -2] and relative strength:0.12 and SU(6) breaking:1.5e+02% and absolute strength:0.18
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =2.7744427093103794
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:11.74
+vector:[-2 -1] and relative strength:1.00 and absolute strength:11.74
+vector:[ 0 -1] and relative strength:0.53 and absolute strength:6.28
+vector:[0 1] and relative strength:0.53 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[-1  0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.98
+vector:[0 2] and relative strength:0.08 and absolute strength:0.98
+vector:[-1 -2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[-1  1] and relative strength:-0.06 and absolute strength:-0.69
+vector:[1 2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[ 1 -1] and relative strength:-0.06 and absolute strength:-0.69
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:2.77 and SU(6) breaking:1.4e+02% and absolute strength:32.58
+vector:[1 1] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[0 1] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[ 0 -1] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[-1 -1] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[-1  0] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[1 0] and relative strength:0.76 and SU(6) breaking:78% and absolute strength:8.95
+vector:[-2 -2] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[0 2] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[2 2] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[2 0] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[-2  0] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[ 0 -2] and relative strength:0.74 and SU(6) breaking:1.6e+02% and absolute strength:8.67
+vector:[2 1] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+vector:[ 1 -1] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+vector:[1 2] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+vector:[-1 -2] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+vector:[-2 -1] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+vector:[-1  1] and relative strength:0.65 and SU(6) breaking:1.3e+02% and absolute strength:7.67
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =3.7690868948913754
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:11.74
+vector:[-2 -1] and relative strength:1.00 and absolute strength:11.74
+vector:[ 0 -1] and relative strength:0.53 and absolute strength:6.28
+vector:[0 1] and relative strength:0.53 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[-1  0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.98
+vector:[0 2] and relative strength:0.08 and absolute strength:0.98
+vector:[-1 -2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[-1  1] and relative strength:-0.06 and absolute strength:-0.69
+vector:[1 2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[ 1 -1] and relative strength:-0.06 and absolute strength:-0.69
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:3.77 and SU(6) breaking:1.2e+02% and absolute strength:44.26
+vector:[0 1] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[-1 -1] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[ 0 -1] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[1 0] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[-1  0] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[1 1] and relative strength:1.53 and SU(6) breaking:62% and absolute strength:17.96
+vector:[2 0] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[-2  0] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[-2 -2] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[2 2] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[0 2] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[ 0 -2] and relative strength:1.20 and SU(6) breaking:1.2e+02% and absolute strength:14.05
+vector:[2 1] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+vector:[ 1 -1] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+vector:[1 2] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+vector:[-1  1] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+vector:[-1 -2] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+vector:[-2 -1] and relative strength:1.19 and SU(6) breaking:88% and absolute strength:13.93
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =4.681727014709054
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:11.74
+vector:[-2 -1] and relative strength:1.00 and absolute strength:11.74
+vector:[ 0 -1] and relative strength:0.53 and absolute strength:6.28
+vector:[0 1] and relative strength:0.53 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[1 1] and relative strength:-0.42 and absolute strength:-4.89
+vector:[-1  0] and relative strength:-0.42 and absolute strength:-4.89
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:0.98
+vector:[0 2] and relative strength:0.08 and absolute strength:0.98
+vector:[-1 -2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[-1  1] and relative strength:-0.06 and absolute strength:-0.69
+vector:[1 2] and relative strength:-0.06 and absolute strength:-0.69
+vector:[ 1 -1] and relative strength:-0.06 and absolute strength:-0.69
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:4.68 and SU(6) breaking:1e+02% and absolute strength:54.98
+vector:[1 1] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[0 1] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[ 0 -1] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[-1 -1] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[-1  0] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[1 0] and relative strength:2.35 and SU(6) breaking:48% and absolute strength:27.59
+vector:[-2 -1] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[-1 -2] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[1 2] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[2 1] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[-1  1] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[ 1 -1] and relative strength:1.86 and SU(6) breaking:60% and absolute strength:21.79
+vector:[2 0] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+vector:[2 2] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+vector:[0 2] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+vector:[ 0 -2] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+vector:[-2  0] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+vector:[-2 -2] and relative strength:1.80 and SU(6) breaking:87% and absolute strength:21.17
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =5.537209994004358
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:5.14
+vector:[-2 -1] and relative strength:1.00 and absolute strength:5.14
+vector:[ 0 -1] and relative strength:0.59 and absolute strength:3.04
+vector:[0 1] and relative strength:0.59 and absolute strength:3.04
+vector:[-1 -1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[-1  0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[ 0 -2] and relative strength:0.06 and absolute strength:0.29
+vector:[0 2] and relative strength:0.06 and absolute strength:0.29
+vector:[-1 -2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[-1  1] and relative strength:-0.05 and absolute strength:-0.27
+vector:[1 2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[ 1 -1] and relative strength:-0.05 and absolute strength:-0.27
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:5.54 and SU(6) breaking:1.4e+02% and absolute strength:28.46
+vector:[2 0] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[2 2] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[ 0 -2] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[-2 -2] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[-2  0] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[0 2] and relative strength:1.29 and SU(6) breaking:1.8e+02% and absolute strength:6.62
+vector:[-2 -1] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[-1  1] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[1 2] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[ 1 -1] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[2 1] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[-1 -2] and relative strength:0.92 and SU(6) breaking:1.5e+02% and absolute strength:4.72
+vector:[1 1] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+vector:[1 0] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+vector:[ 0 -1] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+vector:[0 1] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+vector:[-1 -1] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+vector:[-1  0] and relative strength:0.84 and SU(6) breaking:85% and absolute strength:4.33
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =7.409552118072194
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:5.14
+vector:[-2 -1] and relative strength:1.00 and absolute strength:5.14
+vector:[ 0 -1] and relative strength:0.59 and absolute strength:3.04
+vector:[0 1] and relative strength:0.59 and absolute strength:3.04
+vector:[-1 -1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[-1  0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[ 0 -2] and relative strength:0.06 and absolute strength:0.29
+vector:[0 2] and relative strength:0.06 and absolute strength:0.29
+vector:[-1 -2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[-1  1] and relative strength:-0.05 and absolute strength:-0.27
+vector:[1 2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[ 1 -1] and relative strength:-0.05 and absolute strength:-0.27
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:7.41 and SU(6) breaking:1.3e+02% and absolute strength:38.08
+vector:[1 1] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[0 1] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[ 0 -1] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[-1 -1] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[-1  0] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[1 0] and relative strength:2.05 and SU(6) breaking:69% and absolute strength:10.56
+vector:[-2 -2] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[2 0] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[2 2] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[0 2] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[ 0 -2] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[-2  0] and relative strength:2.00 and SU(6) breaking:1.5e+02% and absolute strength:10.30
+vector:[2 1] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+vector:[ 1 -1] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+vector:[1 2] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+vector:[-1  1] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+vector:[-1 -2] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+vector:[-2 -1] and relative strength:1.73 and SU(6) breaking:1.1e+02% and absolute strength:8.87
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =9.185094046036934
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:5.14
+vector:[-2 -1] and relative strength:1.00 and absolute strength:5.14
+vector:[ 0 -1] and relative strength:0.59 and absolute strength:3.04
+vector:[0 1] and relative strength:0.59 and absolute strength:3.04
+vector:[-1 -1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[1 1] and relative strength:-0.59 and absolute strength:-3.03
+vector:[-1  0] and relative strength:-0.59 and absolute strength:-3.03
+vector:[ 0 -2] and relative strength:0.06 and absolute strength:0.29
+vector:[0 2] and relative strength:0.06 and absolute strength:0.29
+vector:[-1 -2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[-1  1] and relative strength:-0.05 and absolute strength:-0.27
+vector:[1 2] and relative strength:-0.05 and absolute strength:-0.27
+vector:[ 1 -1] and relative strength:-0.05 and absolute strength:-0.27
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:9.19 and SU(6) breaking:1.1e+02% and absolute strength:47.21
+vector:[1 0] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[0 1] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[ 0 -1] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[1 1] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[-1  0] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[-1 -1] and relative strength:3.58 and SU(6) breaking:53% and absolute strength:18.40
+vector:[-2 -2] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[2 0] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[2 2] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[0 2] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[ 0 -2] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[-2  0] and relative strength:3.03 and SU(6) breaking:1.1e+02% and absolute strength:15.57
+vector:[2 1] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+vector:[ 1 -1] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+vector:[1 2] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+vector:[-1  1] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+vector:[-1 -2] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+vector:[-2 -1] and relative strength:2.89 and SU(6) breaking:74% and absolute strength:14.86
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =12.589275242215844
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:2.08
+vector:[-2 -1] and relative strength:1.00 and absolute strength:2.08
+vector:[-1  0] and relative strength:-0.90 and absolute strength:-1.88
+vector:[1 0] and relative strength:-0.90 and absolute strength:-1.88
+vector:[-1 -1] and relative strength:-0.90 and absolute strength:-1.88
+vector:[1 1] and relative strength:-0.90 and absolute strength:-1.88
+vector:[ 0 -1] and relative strength:0.43 and absolute strength:0.90
+vector:[0 1] and relative strength:0.43 and absolute strength:0.90
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:12.59 and SU(6) breaking:1.4e+02% and absolute strength:26.23
+vector:[2 0] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[2 2] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[-2  0] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[-2 -2] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[ 0 -2] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[0 2] and relative strength:2.65 and SU(6) breaking:1.8e+02% and absolute strength:5.51
+vector:[-1 -2] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[-1  1] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[1 2] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[ 1 -1] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[2 1] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[-2 -1] and relative strength:1.50 and SU(6) breaking:1.7e+02% and absolute strength:3.12
+vector:[1 1] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+vector:[0 1] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+vector:[-1 -1] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+vector:[ 0 -1] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+vector:[1 0] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+vector:[-1  0] and relative strength:1.00 and SU(6) breaking:91% and absolute strength:2.09
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =16.674836165607555
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:2.08
+vector:[-2 -1] and relative strength:1.00 and absolute strength:2.08
+vector:[-1  0] and relative strength:-0.90 and absolute strength:-1.88
+vector:[1 0] and relative strength:-0.90 and absolute strength:-1.88
+vector:[-1 -1] and relative strength:-0.90 and absolute strength:-1.88
+vector:[1 1] and relative strength:-0.90 and absolute strength:-1.88
+vector:[ 0 -1] and relative strength:0.43 and absolute strength:0.90
+vector:[0 1] and relative strength:0.43 and absolute strength:0.90
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:16.67 and SU(6) breaking:1.4e+02% and absolute strength:34.74
+vector:[2 0] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[2 2] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[-2 -2] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[0 2] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[-2  0] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[ 0 -2] and relative strength:3.99 and SU(6) breaking:1.7e+02% and absolute strength:8.31
+vector:[-1 -1] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[0 1] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[1 1] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[1 0] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[ 0 -1] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[-1  0] and relative strength:3.07 and SU(6) breaking:74% and absolute strength:6.40
+vector:[2 1] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+vector:[ 1 -1] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+vector:[1 2] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+vector:[-1 -2] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+vector:[-2 -1] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+vector:[-1  1] and relative strength:2.89 and SU(6) breaking:1.3e+02% and absolute strength:6.02
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =18.25948710050577
+HOPPING VECTORS AND STRENGTH:
+vector:[1 1] and relative strength:-1.00 and absolute strength:-1.30
+vector:[1 0] and relative strength:-1.00 and absolute strength:-1.30
+vector:[-1  0] and relative strength:-1.00 and absolute strength:-1.30
+vector:[-1 -1] and relative strength:-1.00 and absolute strength:-1.30
+vector:[-2 -1] and relative strength:0.66 and absolute strength:0.85
+vector:[2 1] and relative strength:0.66 and absolute strength:0.85
+vector:[ 0 -1] and relative strength:0.40 and absolute strength:0.51
+vector:[0 1] and relative strength:0.40 and absolute strength:0.51
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:18.26 and SU(6) breaking:1.4e+02% and absolute strength:23.65
+vector:[2 0] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[2 2] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[-2 -2] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[0 2] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[ 0 -2] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[-2  0] and relative strength:3.65 and SU(6) breaking:1.9e+02% and absolute strength:4.73
+vector:[-1  1] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[2 1] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[1 2] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[ 1 -1] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[-1 -2] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[-2 -1] and relative strength:1.56 and SU(6) breaking:1.8e+02% and absolute strength:2.02
+vector:[1 1] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+vector:[1 0] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+vector:[ 0 -1] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+vector:[0 1] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+vector:[-1 -1] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+vector:[-1  0] and relative strength:0.81 and SU(6) breaking:95% and absolute strength:1.05
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =6.605694227295768
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:12.90
+vector:[-2 -1] and relative strength:1.00 and absolute strength:12.90
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:6.28
+vector:[0 1] and relative strength:0.49 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[-1  0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:1.01
+vector:[0 2] and relative strength:0.08 and absolute strength:1.01
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:6.61 and SU(6) breaking:3.9% and absolute strength:85.23
+vector:[1 0] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[0 1] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[ 0 -1] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[-1 -1] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[-1  0] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[1 1] and relative strength:1.40 and SU(6) breaking:24% and absolute strength:18.04
+vector:[ 1 -1] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[-2 -1] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[2 1] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[1 2] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[-1  1] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[-1 -2] and relative strength:0.20 and SU(6) breaking:38% and absolute strength:2.56
+vector:[2 0] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+vector:[2 2] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+vector:[0 2] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+vector:[ 0 -2] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+vector:[-2  0] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+vector:[-2 -2] and relative strength:0.09 and SU(6) breaking:19% and absolute strength:1.15
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =8.440316306714088
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:12.90
+vector:[-2 -1] and relative strength:1.00 and absolute strength:12.90
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:6.28
+vector:[0 1] and relative strength:0.49 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[-1  0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:1.01
+vector:[0 2] and relative strength:0.08 and absolute strength:1.01
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:8.44 and SU(6) breaking:3.2% and absolute strength:108.90
+vector:[1 1] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[0 1] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[ 0 -1] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[-1 -1] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[-1  0] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[1 0] and relative strength:2.52 and SU(6) breaking:16% and absolute strength:32.47
+vector:[-2 -1] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[ 1 -1] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[2 1] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[1 2] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[-1  1] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[-1 -2] and relative strength:0.69 and SU(6) breaking:17% and absolute strength:8.92
+vector:[-2  0] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+vector:[2 0] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+vector:[2 2] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+vector:[0 2] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+vector:[ 0 -2] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+vector:[-2 -2] and relative strength:0.44 and SU(6) breaking:12% and absolute strength:5.62
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:9.43 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =9.592476897338727
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:12.90
+vector:[-2 -1] and relative strength:1.00 and absolute strength:12.90
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:6.28
+vector:[0 1] and relative strength:0.49 and absolute strength:6.28
+vector:[-1 -1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[1 1] and relative strength:-0.36 and absolute strength:-4.63
+vector:[-1  0] and relative strength:-0.36 and absolute strength:-4.63
+vector:[ 0 -2] and relative strength:0.08 and absolute strength:1.01
+vector:[0 2] and relative strength:0.08 and absolute strength:1.01
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:9.59 and SU(6) breaking:2.8% and absolute strength:123.76
+vector:[1 1] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[0 1] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[ 0 -1] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[-1 -1] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[1 0] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[-1  0] and relative strength:3.48 and SU(6) breaking:12% and absolute strength:44.92
+vector:[-1  1] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[-2 -1] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[2 1] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[ 1 -1] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[-1 -2] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[1 2] and relative strength:1.39 and SU(6) breaking:10% and absolute strength:17.97
+vector:[2 0] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+vector:[2 2] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+vector:[-2  0] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+vector:[ 0 -2] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+vector:[-2 -2] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+vector:[0 2] and relative strength:1.04 and SU(6) breaking:7.1% and absolute strength:13.45
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+ **************************************** 
+
+Umax/tmax =11.87784673068808
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:6.21
+vector:[-2 -1] and relative strength:1.00 and absolute strength:6.21
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:3.07
+vector:[0 1] and relative strength:0.49 and absolute strength:3.07
+vector:[-1 -1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[-1  0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[ 0 -2] and relative strength:0.05 and absolute strength:0.31
+vector:[0 2] and relative strength:0.05 and absolute strength:0.31
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:11.88 and SU(6) breaking:4.3% and absolute strength:73.80
+vector:[1 0] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[0 1] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[-1  0] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[-1 -1] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[ 0 -1] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[1 1] and relative strength:1.51 and SU(6) breaking:29% and absolute strength:9.41
+vector:[-2 -1] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+vector:[ 1 -1] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+vector:[2 1] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+vector:[1 2] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+vector:[-1  1] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+vector:[-1 -2] and relative strength:0.13 and SU(6) breaking:52% and absolute strength:0.81
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+ **************************************** 
+
+Umax/tmax =15.525921640122252
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:6.21
+vector:[-2 -1] and relative strength:1.00 and absolute strength:6.21
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:3.07
+vector:[0 1] and relative strength:0.49 and absolute strength:3.07
+vector:[-1 -1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[-1  0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[ 0 -2] and relative strength:0.05 and absolute strength:0.31
+vector:[0 2] and relative strength:0.05 and absolute strength:0.31
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:15.53 and SU(6) breaking:3.4% and absolute strength:96.47
+vector:[1 1] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[0 1] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[ 0 -1] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[-1 -1] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[-1  0] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[1 0] and relative strength:3.25 and SU(6) breaking:18% and absolute strength:20.22
+vector:[-2 -1] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[ 1 -1] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[2 1] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[1 2] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[-1  1] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[-1 -2] and relative strength:0.68 and SU(6) breaking:20% and absolute strength:4.20
+vector:[2 0] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+vector:[2 2] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+vector:[0 2] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+vector:[ 0 -2] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+vector:[-2  0] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+vector:[-2 -2] and relative strength:0.38 and SU(6) breaking:14% and absolute strength:2.37
+==================================================================================================== 
+ 
+
+**************************************** 
+ COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:7.34 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+ **************************************** 
+
+Umax/tmax =17.881524987003896
+HOPPING VECTORS AND STRENGTH:
+vector:[2 1] and relative strength:1.00 and absolute strength:6.21
+vector:[-2 -1] and relative strength:1.00 and absolute strength:6.21
+vector:[ 0 -1] and relative strength:0.49 and absolute strength:3.07
+vector:[0 1] and relative strength:0.49 and absolute strength:3.07
+vector:[-1 -1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[1 1] and relative strength:-0.46 and absolute strength:-2.86
+vector:[-1  0] and relative strength:-0.46 and absolute strength:-2.86
+vector:[ 0 -2] and relative strength:0.05 and absolute strength:0.31
+vector:[0 2] and relative strength:0.05 and absolute strength:0.31
+
+ INTERACTION VECTORS AND STRENGTH:
+vector:[0 0] and relative strength:17.88 and SU(6) breaking:3% and absolute strength:111.10
+vector:[1 1] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[ 0 -1] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[-1  0] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[-1 -1] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[1 0] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[0 1] and relative strength:5.04 and SU(6) breaking:12% and absolute strength:31.29
+vector:[-1 -2] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[ 1 -1] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[1 2] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[2 1] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[-2 -1] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[-1  1] and relative strength:1.78 and SU(6) breaking:9.9% and absolute strength:11.03
+vector:[2 0] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+vector:[2 2] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+vector:[0 2] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+vector:[ 0 -2] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+vector:[-2  0] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+vector:[-2 -2] and relative strength:1.27 and SU(6) breaking:7.5% and absolute strength:7.89
+==================================================================================================== 
+ 
+
+COMPOUNDS IN THE SPIN-CHAIN REGIME(30 of 72):
+ 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 22.74 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 25.24 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 34.57 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 40.96 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 36.83 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 51.30 
+
+COMPOUND:SnSe2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 61.46 
+
+COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 21.76 
+
+COMPOUND:SnSe2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 24.42 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 20.45 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 24.29 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 29.62 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 28.09 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 37.55 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 45.44 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 39.87 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 53.83 
+
+COMPOUND:ZrS2 & STACKING:AA 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 65.01 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 22.13 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 29.38 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:6.01 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 34.17 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 33.65 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 45.61 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:5.09 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 53.76 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 56.32 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 77.50 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:4.41 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 92.29 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:2.5nm 
+  U/t ~ 96.66 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:5nm 
+  U/t ~ 135.05 
+
+COMPOUND:ZrS2 & STACKING:AB 
+ TWIST:3.89 PERMITTIVITY:12 SCREENING LENGTH:10nm 
+  U/t ~ 162.52 
+
